@@ -3,7 +3,7 @@ import './Navbar.css';
 import { FiShoppingCart, FiSearch } from 'react-icons/fi';
 import { FaRegHeart, FaBars, FaTimes } from 'react-icons/fa';
 
-const Navbar = ({ logoText = 'Dharti', logoHighlight = 'Oil' }) => {
+const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user, onLoginClick, onRegisterClick, onLogoutClick }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(3);
 
@@ -16,9 +16,18 @@ const Navbar = ({ logoText = 'Dharti', logoHighlight = 'Oil' }) => {
       {/* Top Row */}
       <div className="navbar-top-row">
         <div className="navbar-top-content">
-          <button className="navbar-btn login-btn">Login</button>
-          <span className="navbar-divider">|</span>
-          <button className="navbar-btn register-btn">Register</button>
+          {user ? (
+            <>
+              <span style={{color: '#555', fontSize: '14px', marginRight: '10px'}}>Welcome, {user.username}</span>
+              <button className="navbar-btn login-btn" onClick={onLogoutClick}>Logout</button>
+            </>
+          ) : (
+            <>
+              <button className="navbar-btn login-btn" onClick={onLoginClick}>Login</button>
+              <span className="navbar-divider">|</span>
+              <button className="navbar-btn register-btn" onClick={onRegisterClick}>Register</button>
+            </>
+          )}
         </div>
       </div>
 
@@ -27,7 +36,10 @@ const Navbar = ({ logoText = 'Dharti', logoHighlight = 'Oil' }) => {
         <div className="navbar-bottom-content">
           {/* Logo */}
           <div className="navbar-logo">
-            <a href="/">{logoText} <span>{logoHighlight}</span></a>
+            <a href="/" style={{display: 'flex', alignItems: 'center'}}>
+              {logoData && <img src={logoData} alt="Logo" style={{maxHeight:'40px', marginRight:'10px'}} />}
+              {logoText}{' '}<span>{logoHighlight}</span>
+            </a>
           </div>
 
           {/* Desktop Navigation */}

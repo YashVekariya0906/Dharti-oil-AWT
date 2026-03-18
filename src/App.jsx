@@ -1,28 +1,45 @@
 import React, { useState, useEffect } from 'react'
 import Navbar from './components/Navbar'
-import NavUpdate from './admin_nav_update/nav_update'
+import Register from './components/Register'
+import Login from './components/Login'
+import AdminDashboard from './components/AdminDashboard'
+import ImageSlider from './components/ImageSlider'
 import './App.css'
 
 function App() {
   const [config, setConfig] = useState({
-    logo_text: 'Dharti ',
+    logo_text: 'Dharti',
     logo_highlight: 'Amrut',
     welcome_message: 'Welcome to Dharti Amrut',
     discover_text: 'Discover the purest and natural oils for your health and cooking needs.'
   });
+  const [navbarData, setNavbarData] = useState({});
   const [products, setProducts] = useState([
     { id: 1, name: 'Loading Product...', price: '0.00' }
   ]);
   const [loading, setLoading] = useState(true);
-  const [showNavUpdate, setShowNavUpdate] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const [user, setUser] = useState(null);
+
+  const handleLogin = (userData) => {
+    setUser(userData);
+    setShowLogin(false);
+    setShowRegister(false);
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+  };
 
   useEffect(() => {
     // Fetch configuration and products from backend
     const fetchData = async () => {
       try {
-        const [configRes, productsRes] = await Promise.all([
+        const [configRes, productsRes, navbarRes] = await Promise.all([
           fetch('http://localhost:5000/api/config'),
-          fetch('http://localhost:5000/api/products')
+          fetch('http://localhost:5000/api/products'),
+          fetch('http://localhost:5000/api/navbar')
         ]);
         
         if (configRes.ok) {
@@ -38,6 +55,11 @@ function App() {
         } else {
           console.warn("Failed to fetch products, using defaults.");
         }
+
+        if (navbarRes.ok) {
+          const navD = await navbarRes.json();
+          setNavbarData(navD);
+        }
       } catch (error) {
         console.error("Error fetching data from backend. Make sure the Node server is running on port 5000.", error);
       } finally {
@@ -48,35 +70,30 @@ function App() {
     fetchData();
   }, []);
 
+  // Admin Routing
+  if (user && user.role === 'admin') {
+    return <AdminDashboard user={user} onLogout={handleLogout} />;
+  }
+
+  // Public/User Routing
   return (
     <div className="app-container">
-      {!showNavUpdate ? (
+      {!showRegister && !showLogin ? (
         <>
-          <Navbar logoText={config.logo_text} logoHighlight={config.logo_highlight} />
-          
-          {/* Admin Update Button */}
-          <button 
-            className="admin-toggle-btn" 
-            onClick={() => setShowNavUpdate(true)}
-            style={{
-              position: 'fixed',
-              top: '20px',
-              right: '20px',
-              padding: '8px 16px',
-              background: '#4CAF50',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              zIndex: 1000
-            }}
-          >
-            Admin: Update Navbar
-          </button>
+          <Navbar 
+            logoData={navbarData.nav_logo_path}
+            logoText={config.logo_text} 
+            logoHighlight={config.logo_highlight} 
+            user={user}
+            onLoginClick={() => setShowLogin(true)}
+            onRegisterClick={() => setShowRegister(true)} 
+            onLogoutClick={handleLogout}
+          />
           
           {/* Main Content */}
           <main className="main-content">
+            <ImageSlider images={[navbarData.I1_path, navbarData.I2_path, navbarData.I3_path, navbarData.I4_path, navbarData.I5_path].filter(Boolean)} />
+            
             <section className="hero-section">
               <h1>{config.welcome_message}</h1>
               <p>{config.discover_text}</p>
@@ -113,30 +130,23 @@ function App() {
             </section>
           </main>
         </>
-      ) : (
+      ) : showRegister ? (
         <div style={{ position: 'relative' }}>
-          <button 
-            className="back-btn" 
-            onClick={() => setShowNavUpdate(false)}
-            style={{
-              position: 'fixed',
-              top: '20px',
-              left: '20px',
-              padding: '8px 16px',
-              background: '#666',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              zIndex: 1000
-            }}
-          >
-            Back to Home
-          </button>
-          <NavUpdate />
+          <Register 
+            onBack={() => setShowRegister(false)} 
+            onLogin={handleLogin} 
+            onSwitchToLogin={() => { setShowRegister(false); setShowLogin(true); }}
+          />
         </div>
-      )}
+      ) : showLogin ? (
+        <div style={{ position: 'relative' }}>
+          <Login 
+            onBack={() => setShowLogin(false)} 
+            onLogin={handleLogin} 
+            onSwitchToRegister={() => { setShowLogin(false); setShowRegister(true); }}
+          />
+        </div>
+      ) : null}
     </div>
   )
 }

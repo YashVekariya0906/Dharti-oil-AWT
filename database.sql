@@ -16,20 +16,20 @@ VALUES ('Dharti ', 'Oil', 'Welcome to Dharti Amrut', 'Discover the purest and na
 
 -- Table for navbar
 CREATE TABLE IF NOT EXISTS navbar (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  logo VARCHAR(255) DEFAULT NULL,
-  image1 VARCHAR(255) DEFAULT NULL,
-  image2 VARCHAR(255) DEFAULT NULL,
-  image3 VARCHAR(255) DEFAULT NULL,
-  image4 VARCHAR(255) DEFAULT NULL,
-  image5 VARCHAR(255) DEFAULT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  nav_id INT PRIMARY KEY AUTO_INCREMENT,
+  nav_logo_path VARCHAR(255) DEFAULT NULL,
+  I1_path VARCHAR(255) DEFAULT NULL,
+  I2_path VARCHAR(255) DEFAULT NULL,
+  I3_path VARCHAR(255) DEFAULT NULL,
+  I4_path VARCHAR(255) DEFAULT NULL,
+  I5_path VARCHAR(255) DEFAULT NULL
 );
 
 -- Insert initial navbar data
-INSERT INTO navbar (logo, image1, image2, image3, image4, image5) 
+INSERT INTO navbar (nav_logo_path, I1_path, I2_path, I3_path, I4_path, I5_path) 
 VALUES (NULL, NULL, NULL, NULL, NULL, NULL);
+
+
 
 -- Table for products
 CREATE TABLE IF NOT EXISTS products (

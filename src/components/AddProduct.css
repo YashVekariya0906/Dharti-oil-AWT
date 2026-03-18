@@ -1,0 +1,95 @@
+.add-product-container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.add-product-form-wrapper {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  width: 100%;
+  max-width: 600px;
+}
+
+.add-product-form-wrapper h2 {
+  margin-top: 0;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.message {
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  text-align: center;
+  font-weight: 500;
+}
+.message.success { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+.message.error { background-color: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+
+.add-product-form .form-group {
+  margin-bottom: 20px;
+}
+
+.add-product-form .form-group.row {
+  display: flex;
+  gap: 15px;
+}
+
+.add-product-form .form-half {
+  flex: 1;
+}
+
+.add-product-form label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #555;
+  font-size: 14px;
+}
+
+.add-product-form input,
+.add-product-form textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 15px;
+  box-sizing: border-box;
+  transition: border-color 0.3s;
+}
+
+.add-product-form input:focus,
+.add-product-form textarea:focus {
+  border-color: #4CAF50;
+  outline: none;
+}
+
+.add-product-form textarea {
+  resize: vertical;
+}
+
+.add-product-form .submit-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.add-product-form .submit-btn:hover:not(:disabled) {
+  background-color: #45a049;
+}
+
+.add-product-form .submit-btn:disabled {
+  background-color: #a5d6a7;
+  cursor: not-allowed;
+}
