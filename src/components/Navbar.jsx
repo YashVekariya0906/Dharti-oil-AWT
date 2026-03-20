@@ -126,7 +126,4 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
     </header>
   );
 };
-
-
-
 export default Navbar;
