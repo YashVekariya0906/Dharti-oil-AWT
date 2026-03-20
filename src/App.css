@@ -85,20 +85,123 @@ body {
   transform: translateY(-5px);
 }
 
-.product-image-placeholder {
+.product-image-container {
   width: 100%;
-  height: 200px;
+  height: 250px;
   background-color: #eee;
   border-radius: 4px;
   margin-bottom: 15px;
+  position: relative;
+  overflow: hidden;
+}
+
+.product-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: white;
+  transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-img {
+  transform: scale(1.05);
+}
+
+.no-image-placeholder {
+  width: 100%;
+  height: 100%;
+}
+
+.discount-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: #8bc34a;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 13px;
+  z-index: 2;
+}
+
+.favorite-icon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  color: #bbb;
+  font-size: 20px;
+  cursor: pointer;
+  transition: color 0.3s;
+  z-index: 2;
+  background: transparent;
+  border: none;
+}
+
+.favorite-icon:hover {
+  color: #e74c3c;
+}
+
+.hover-actions {
+  position: absolute;
+  bottom: -50px;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  transition: bottom 0.3s ease;
+  z-index: 2;
+}
+
+.product-card:hover .hover-actions {
+  bottom: 20px;
+}
+
+.hover-action-btn {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  background: white;
+  color: #333;
+  border: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.hover-action-btn:hover {
+  background: #2c3e50;
+  color: white;
+  border-color: #2c3e50;
 }
 
 .product-card h3 {
   margin-bottom: 10px;
   color: #333;
+  font-size: 1.2rem;
+  font-weight: normal;
 }
 
-.product-card p {
-  color: #e74c3c;
-  font-weight: bold;
+.price-container {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  align-items: center;
+}
+
+.before-price {
+  color: #999;
+  text-decoration: line-through;
+  font-size: 1rem;
+}
+
+.current-price {
+  color: #333;
+  font-weight: 600;
+  font-size: 1.1rem;
 }

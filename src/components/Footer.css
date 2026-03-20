@@ -1,0 +1,137 @@
+.site-footer {
+  background-color: #fcfcfc;
+  border-top: 1px solid #eaeaea;
+  padding: 50px 0;
+  color: #333;
+  font-family: inherit;
+  margin-top: 40px;
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.footer-col {
+  flex: 1;
+  min-width: 250px;
+  margin-bottom: 30px;
+}
+
+.brand-col .footer-logo {
+  max-height: 80px;
+  margin-bottom: 15px;
+}
+
+.brand-col .footer-brand-text {
+  color: #2e7d32;
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.footer-address, .footer-contact {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 5px 0;
+  color: #555;
+}
+
+.social-icons {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.social-icons a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 35px;
+  height: 35px;
+  background-color: #333;
+  color: white;
+  border-radius: 4px;
+  text-decoration: none;
+  font-size: 18px;
+  transition: background-color 0.3s;
+}
+
+.social-icons a:hover {
+  background-color: #4CAF50;
+}
+
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links li {
+  margin-bottom: 10px;
+}
+
+.footer-links a {
+  text-decoration: none;
+  color: #555;
+  font-size: 14px;
+  transition: color 0.3s;
+}
+
+.footer-links a:hover {
+  color: #4CAF50;
+}
+
+.footer-heading {
+  font-size: 1.25rem;
+  color: #2c3e50;
+  margin-bottom: 20px;
+  font-weight: 600;
+  position: relative;
+  padding-bottom: 10px;
+}
+
+.footer-heading::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 40px;
+  background-color: #4CAF50;
+}
+
+.timing-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 14px;
+  color: #555;
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 6px;
+  border-left: 4px solid #4CAF50;
+}
+
+.timing-days {
+  font-weight: 500;
+}
+
+.timing-hours {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.footer-bottom {
+  text-align: center;
+  padding: 25px 20px 0;
+  border-top: 1px solid #eaeaea;
+  margin-top: 40px;
+  color: #777;
+  font-size: 14px;
+}
