@@ -4,6 +4,8 @@ import Register from './components/Register'
 import Login from './components/Login'
 import AdminDashboard from './components/AdminDashboard'
 import ImageSlider from './components/ImageSlider'
+import Footer from './components/Footer'
+import { FaHeart, FaShoppingBag, FaSyncAlt } from 'react-icons/fa';
 import './App.css'
 
 function App() {
@@ -94,12 +96,6 @@ function App() {
           <main className="main-content">
             <ImageSlider images={[navbarData.I1_path, navbarData.I2_path, navbarData.I3_path, navbarData.I4_path, navbarData.I5_path].filter(Boolean)} />
             
-            <section className="hero-section">
-              <h1>{config.welcome_message}</h1>
-              <p>{config.discover_text}</p>
-              <button className="cta-button">Shop Now</button>
-            </section>
-            
             <section className="features-section">
               <h2>Our Products</h2>
               {loading ? (
@@ -109,17 +105,35 @@ function App() {
                   {products.length > 0 ? (
                     products.map(item => (
                       <div key={item.product_id} className="product-card">
-                        <div className="product-image-placeholder">
+                        <div className="product-image-container">
+                          {item.product_discount > item.product_price && (
+                             <span className="discount-badge">
+                               -{Math.round(((item.product_discount - item.product_price) / item.product_discount) * 100)}%
+                             </span>
+                          )}
+                          <div className="favorite-icon"><FaHeart /></div>
+
                           {item.product_image ? (
                             <img 
                               src={item.product_image} 
                               alt={item.product_name} 
-                              style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px'}} 
+                              className="product-img"
                             />
-                          ) : null}
+                          ) : <div className="no-image-placeholder"></div>}
+                          
+                          <div className="hover-actions">
+                             <button className="hover-action-btn" title="Add to Cart"><FaShoppingBag /></button>
+                             <button className="hover-action-btn" title="Compare/Refresh"><FaSyncAlt /></button>
+                          </div>
                         </div>
+
                         <h3>{item.product_name}</h3>
-                        <p>₹{item.product_price}</p>
+                        <p className="price-container">
+                          {item.product_discount > item.product_price && (
+                             <span className="before-price">₹{item.product_discount}</span>
+                          )}
+                          <span className="current-price">₹{item.product_price}</span>
+                        </p>
                       </div>
                     ))
                   ) : (
@@ -128,7 +142,17 @@ function App() {
                 </div>
               )}
             </section>
+            
+            {navbarData.intro_path && (
+              <img 
+                src={navbarData.intro_path} 
+                alt="Intro" 
+                style={{ width: '100%', height: '250px', objectFit: 'cover' }} 
+              />
+            )}
           </main>
+          
+          <Footer logoData={navbarData.nav_logo_path} />
         </>
       ) : showRegister ? (
         <div style={{ position: 'relative' }}>

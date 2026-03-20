@@ -4,7 +4,7 @@ import './UpdateNavbar.css';
 export default function UpdateNavbar() {
   const [viewMode, setViewMode] = useState('list');
   const [formData, setFormData] = useState({
-    nav_logo_path: '', I1_path: '', I2_path: '', I3_path: '', I4_path: '', I5_path: ''
+    nav_logo_path: '', I1_path: '', I2_path: '', I3_path: '', I4_path: '', I5_path: '', intro_path: ''
   });
   const [fileInputs, setFileInputs] = useState({});
   const [message, setMessage] = useState('');
@@ -90,7 +90,8 @@ export default function UpdateNavbar() {
     { key: 'I2_path', label: 'Slideshow Image 2' },
     { key: 'I3_path', label: 'Slideshow Image 3' },
     { key: 'I4_path', label: 'Slideshow Image 4' },
-    { key: 'I5_path', label: 'Slideshow Image 5' }
+    { key: 'I5_path', label: 'Slideshow Image 5' },
+    { key: 'intro_path', label: 'Intro Image' }
   ];
 
   if (viewMode === 'list') {
@@ -179,6 +180,12 @@ export default function UpdateNavbar() {
         <div className="form-group flex-row">
           <input type="file" accept="image/*" onChange={e => handleFileChange(e, 'I5_path')} />
           {formData.I5_path && <span className="existing-tag">Currently Active</span>}
+        </div>
+
+        <label>Intro Image (Under our products)</label>
+        <div className="form-group flex-row">
+          <input type="file" accept="image/*" onChange={e => handleFileChange(e, 'intro_path')} />
+          {formData.intro_path && <span className="existing-tag">Currently Active</span>}
         </div>
 
         <div className="action-row" style={{marginTop: '20px'}}>

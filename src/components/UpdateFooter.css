@@ -1,0 +1,84 @@
+.updatefooter-container {
+  background: white;
+  border-radius: 8px;
+  padding: 30px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.updatefooter-container h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+.updatefooter-container h3 {
+  margin-top: 25px;
+  margin-bottom: 10px;
+  color: #4CAF50;
+  font-size: 1.1em;
+}
+
+.updatefooter-container hr {
+  border: none;
+  border-top: 1px solid #eee;
+  margin-top: 20px;
+}
+
+.updatefooter-msg {
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.updatefooter-msg.success {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.updatefooter-msg.error {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.updatefooter-form .form-group {
+  margin-bottom: 15px;
+}
+
+.updatefooter-form label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #555;
+}
+
+.updatefooter-form input[type="text"],
+.updatefooter-form input[type="email"],
+.updatefooter-form textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.updatefooter-form input:focus,
+.updatefooter-form textarea:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+
+.save-btn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.save-btn:disabled {
+  background-color: #a5d6a7;
+  cursor: not-allowed;
+}

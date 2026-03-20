@@ -22,12 +22,13 @@ CREATE TABLE IF NOT EXISTS navbar (
   I2_path VARCHAR(255) DEFAULT NULL,
   I3_path VARCHAR(255) DEFAULT NULL,
   I4_path VARCHAR(255) DEFAULT NULL,
-  I5_path VARCHAR(255) DEFAULT NULL
+  I5_path VARCHAR(255) DEFAULT NULL,
+  intro_path VARCHAR(255) DEFAULT NULL
 );
 
 -- Insert initial navbar data
-INSERT INTO navbar (nav_logo_path, I1_path, I2_path, I3_path, I4_path, I5_path) 
-VALUES (NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO navbar (nav_logo_path, I1_path, I2_path, I3_path, I4_path, I5_path, intro_path) 
+VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 
 

@@ -24,7 +24,8 @@ const navbarFields = [
   { name: 'I2_path', maxCount: 1 },
   { name: 'I3_path', maxCount: 1 },
   { name: 'I4_path', maxCount: 1 },
-  { name: 'I5_path', maxCount: 1 }
+  { name: 'I5_path', maxCount: 1 },
+  { name: 'intro_path', maxCount: 1 }
 ];
 
 const productStorage = multer.diskStorage({
@@ -141,6 +142,39 @@ app.post('/api/products', productUpload.single('product_image'), async (req, res
   }
 });
 
+// API endpoint to update a product
+app.put('/api/products/:id', productUpload.single('product_image'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { product_name, product_quantity, product_description, product_price, product_discount, existing_image } = req.body;
+    
+    const qty = product_quantity ? parseInt(product_quantity) : 0;
+    const price = product_price ? parseFloat(product_price) : 0;
+    const discount = product_discount ? parseFloat(product_discount) : 0;
+    
+    const product_image = req.file ? ('http://localhost:5000/uploads/' + req.file.filename) : (existing_image || null);
+
+    await pool.query(
+      'UPDATE products SET product_name=?, product_quantity=?, product_description=?, product_price=?, product_discount=?, product_image=? WHERE product_id=?',
+      [product_name || '', qty, product_description || '', price, discount, product_image, id]
+    );
+    res.status(200).json({ message: 'Product updated successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API endpoint to delete a product
+app.delete('/api/products/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query('DELETE FROM products WHERE product_id=?', [id]);
+    res.status(200).json({ message: 'Product deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // API endpoint to fetch navbar data
 app.get('/api/navbar', async (req, res) => {
   try {
@@ -168,7 +202,7 @@ app.post('/api/navbar/delete', async (req, res) => {
     let updates = [];
     
     for (const field of fields) {
-       const allowedFields = ['nav_logo_path', 'I1_path', 'I2_path', 'I3_path', 'I4_path', 'I5_path'];
+       const allowedFields = ['nav_logo_path', 'I1_path', 'I2_path', 'I3_path', 'I4_path', 'I5_path', 'intro_path'];
        if (allowedFields.includes(field)) {
           updates.push(`${field} = NULL`);
           if (row[field]) {
@@ -206,20 +240,21 @@ app.post('/api/navbar/update', upload.fields(navbarFields), async (req, res) => 
     const I3_path = constructPath('I3_path');
     const I4_path = constructPath('I4_path');
     const I5_path = constructPath('I5_path');
+    const intro_path = constructPath('intro_path');
     
     const [rows] = await pool.query('SELECT nav_id FROM navbar LIMIT 1');
     
     if (rows.length > 0) {
       const nav_id = rows[0].nav_id;
       await pool.query(
-        'UPDATE navbar SET nav_logo_path = ?, I1_path = ?, I2_path = ?, I3_path = ?, I4_path = ?, I5_path = ? WHERE nav_id = ?',
-        [nav_logo_path, I1_path, I2_path, I3_path, I4_path, I5_path, nav_id]
+        'UPDATE navbar SET nav_logo_path = ?, I1_path = ?, I2_path = ?, I3_path = ?, I4_path = ?, I5_path = ?, intro_path = ? WHERE nav_id = ?',
+        [nav_logo_path, I1_path, I2_path, I3_path, I4_path, I5_path, intro_path, nav_id]
       );
       res.json({ message: 'Navbar updated successfully', nav_id });
     } else {
       await pool.query(
-        'INSERT INTO navbar (nav_logo_path, I1_path, I2_path, I3_path, I4_path, I5_path) VALUES (?, ?, ?, ?, ?, ?)',
-        [nav_logo_path, I1_path, I2_path, I3_path, I4_path, I5_path]
+        'INSERT INTO navbar (nav_logo_path, I1_path, I2_path, I3_path, I4_path, I5_path, intro_path) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [nav_logo_path, I1_path, I2_path, I3_path, I4_path, I5_path, intro_path]
       );
       res.json({ message: 'Navbar created successfully' });
     }
@@ -228,6 +263,49 @@ app.post('/api/navbar/update', upload.fields(navbarFields), async (req, res) => 
   }
 });
 
+
+
+// API endpoint to fetch footer data
+app.get('/api/footer', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM footer_settings LIMIT 1');
+    if (rows.length > 0) {
+      res.json(rows[0]);
+    } else {
+      res.status(404).json({ message: 'Footer config not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API endpoint to update footer data
+app.post('/api/footer/update', async (req, res) => {
+  try {
+    const {
+      company_name, address, phone, email, facebook_link, instagram_link, home_link, shop_link, about_link, contact_link, blog_link, privacy_policy_link, return_exchange_link, working_days, working_hours
+    } = req.body;
+    
+    const [rows] = await pool.query('SELECT id FROM footer_settings LIMIT 1');
+    
+    if (rows.length > 0) {
+      const id = rows[0].id;
+      await pool.query(
+        'UPDATE footer_settings SET company_name=?, address=?, phone=?, email=?, facebook_link=?, instagram_link=?, home_link=?, shop_link=?, about_link=?, contact_link=?, blog_link=?, privacy_policy_link=?, return_exchange_link=?, working_days=?, working_hours=? WHERE id=?',
+        [company_name, address, phone, email, facebook_link, instagram_link, home_link, shop_link, about_link, contact_link, blog_link, privacy_policy_link, return_exchange_link, working_days, working_hours, id]
+      );
+      res.json({ message: 'Footer updated successfully', id });
+    } else {
+      await pool.query(
+        'INSERT INTO footer_settings (company_name, address, phone, email, facebook_link, instagram_link, home_link, shop_link, about_link, contact_link, blog_link, privacy_policy_link, return_exchange_link, working_days, working_hours) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [company_name, address, phone, email, facebook_link, instagram_link, home_link, shop_link, about_link, contact_link, blog_link, privacy_policy_link, return_exchange_link, working_days, working_hours]
+      );
+      res.json({ message: 'Footer created successfully' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 
 // API endpoint for user registration
