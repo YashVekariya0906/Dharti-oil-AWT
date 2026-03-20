@@ -15,7 +15,7 @@ function App() {
   });
   const [navbarData, setNavbarData] = useState({});
   const [products, setProducts] = useState([
-    { id: 1, name: 'Loading Product...', price: '0.00' }
+    { product_id: 1, product_name: 'Loading Product...', product_price: '0.00' }
   ]);
   const [loading, setLoading] = useState(true);
   const [showRegister, setShowRegister] = useState(false);
@@ -108,18 +108,18 @@ function App() {
                 <div className="product-grid">
                   {products.length > 0 ? (
                     products.map(item => (
-                      <div key={item.id} className="product-card">
+                      <div key={item.product_id} className="product-card">
                         <div className="product-image-placeholder">
-                          {item.image_url ? (
+                          {item.product_image ? (
                             <img 
-                              src={item.image_url} 
-                              alt={item.name} 
+                              src={item.product_image} 
+                              alt={item.product_name} 
                               style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px'}} 
                             />
                           ) : null}
                         </div>
-                        <h3>{item.name}</h3>
-                        <p>₹{item.price}</p>
+                        <h3>{item.product_name}</h3>
+                        <p>₹{item.product_price}</p>
                       </div>
                     ))
                   ) : (

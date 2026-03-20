@@ -18,7 +18,7 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
         <div className="navbar-top-content">
           {user ? (
             <>
-              <span style={{color: '#555', fontSize: '14px', marginRight: '10px'}}>Welcome, {user.username}</span>
+              <span style={{ color: '#555', fontSize: '14px', marginRight: '10px' }}>Welcome, {user.username}</span>
               <button className="navbar-btn login-btn" onClick={onLogoutClick}>Logout</button>
             </>
           ) : (
@@ -36,8 +36,8 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
         <div className="navbar-bottom-content">
           {/* Logo */}
           <div className="navbar-logo">
-            <a href="/" style={{display: 'flex', alignItems: 'center'}}>
-              {logoData && <img src={logoData} alt="Logo" style={{maxHeight:'40px', marginRight:'10px'}} />}
+            <a href="/" style={{ display: 'flex', alignItems: 'center' }}>
+              {logoData && <img src={logoData} alt="Logo" style={{ maxHeight: '40px', marginRight: '10px' }} />}
               {logoText}{' '}<span>{logoHighlight}</span>
             </a>
           </div>
@@ -51,10 +51,10 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
               <li className="nav-item dropdown">
                 <a href="#shop" className="nav-link">Shop</a>
                 <ul className="dropdown-menu">
-                  <li><a href="#men">Men's Clothing</a></li>
-                  <li><a href="#women">Women's Clothing</a></li>
-                  <li><a href="#accessories">Accessories</a></li>
-                  <li><a href="#shoes">Shoes</a></li>
+                  <li><a href="#15kg Tin">15kg Tin</a></li>
+                  <li><a href="#15kg Can">15kg Can</a></li>
+                  <li><a href="#5kg Can">5kg Can</a></li>
+                  <li><a href="#1kg Bottel">1kg Bottle</a></li>
                 </ul>
               </li>
               <li className="nav-item">
@@ -103,18 +103,18 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
           <li className="mobile-dropdown-parent">
             <a href="#shop">Shop</a>
             <ul className="mobile-dropdown">
-              <li><a href="#men" onClick={toggleMobileMenu}>Men's Clothing</a></li>
-              <li><a href="#women" onClick={toggleMobileMenu}>Women's Clothing</a></li>
-              <li><a href="#accessories" onClick={toggleMobileMenu}>Accessories</a></li>
-              <li><a href="#shoes" onClick={toggleMobileMenu}>Shoes</a></li>
+              <li><a href="#15kg Tin" onClick={toggleMobileMenu}>15kg Tin</a></li>
+              <li><a href="#15kg Can" onClick={toggleMobileMenu}>15kg Can</a></li>
+              <li><a href="#5kg Can" onClick={toggleMobileMenu}>5kg Can</a></li>
+              <li><a href="#1kg Bottle" onClick={toggleMobileMenu}>1kg Bottle</a></li>
             </ul>
           </li>
           <li><a href="#about" onClick={toggleMobileMenu}>About Us</a></li>
           <li><a href="#blog" onClick={toggleMobileMenu}>Blog</a></li>
           <li><a href="#contact" onClick={toggleMobileMenu}>Contact</a></li>
-          
+
           <li className="mobile-bonus-icons">
-             <div className="icon-wrapper search-icon">
+            <div className="icon-wrapper search-icon">
               <FiSearch /> <span>Search</span>
             </div>
             <div className="icon-wrapper wishlist-icon">
@@ -126,5 +126,7 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
     </header>
   );
 };
+
+
 
 export default Navbar;

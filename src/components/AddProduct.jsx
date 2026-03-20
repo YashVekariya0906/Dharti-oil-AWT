@@ -9,6 +9,7 @@ export default function AddProduct() {
     product_price: '',
     product_discount: ''
   });
+  const [imageFile, setImageFile] = useState(null);
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -28,10 +29,15 @@ export default function AddProduct() {
     setMessage('');
     
     try {
+      const formDataToSend = new FormData();
+      Object.entries(formData).forEach(([k, v]) => formDataToSend.append(k, v));
+      if (imageFile) {
+        formDataToSend.append('product_image', imageFile);
+      }
+
       const response = await fetch('http://localhost:5000/api/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: formDataToSend
       });
       
       if (response.ok) {
@@ -59,6 +65,11 @@ export default function AddProduct() {
         {message && <div className={`message ${message.includes('successfully') ? 'success' : 'error'}`}>{message}</div>}
         
         <form onSubmit={handleSubmit} className="add-product-form">
+          <div className="form-group">
+            <label>Product Image (File)</label>
+            <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files[0])} required />
+          </div>
+
           <div className="form-group">
             <label>Product Name</label>
             <input type="text" name="product_name" value={formData.product_name} onChange={handleChange} required />

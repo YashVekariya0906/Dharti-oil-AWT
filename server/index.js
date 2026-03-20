@@ -27,6 +27,18 @@ const navbarFields = [
   { name: 'I5_path', maxCount: 1 }
 ];
 
+const productStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname);
+    const safeName = (req.body.product_name || 'product').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+    cb(null, safeName + '_' + Date.now() + ext);
+  }
+});
+const productUpload = multer({ storage: productStorage });
+
 const app = express();
 
 let transporter;
@@ -108,7 +120,7 @@ app.get('/api/products', async (req, res) => {
 });
 
 // API endpoint to add a new product
-app.post('/api/products', async (req, res) => {
+app.post('/api/products', productUpload.single('product_image'), async (req, res) => {
   try {
     const { product_name, product_quantity, product_description, product_price, product_discount } = req.body;
     
@@ -116,10 +128,12 @@ app.post('/api/products', async (req, res) => {
     const qty = product_quantity ? parseInt(product_quantity) : 0;
     const price = product_price ? parseFloat(product_price) : 0;
     const discount = product_discount ? parseFloat(product_discount) : 0;
+    
+    const product_image = req.file ? ('http://localhost:5000/uploads/' + req.file.filename) : null;
 
     const [result] = await pool.query(
-      'INSERT INTO products (product_name, product_quantity, product_description, product_price, product_discount) VALUES (?, ?, ?, ?, ?)',
-      [product_name || '', qty, product_description || '', price, discount]
+      'INSERT INTO products (product_name, product_quantity, product_description, product_price, product_discount, product_image) VALUES (?, ?, ?, ?, ?, ?)',
+      [product_name || '', qty, product_description || '', price, discount, product_image]
     );
     res.status(201).json({ message: 'Product added successfully', product_id: result.insertId });
   } catch (error) {
