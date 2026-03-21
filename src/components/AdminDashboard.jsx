@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import AddProduct from './AddProduct';
 import UpdateNavbar from './UpdateNavbar';
 import UpdateFooter from './UpdateFooter';
+import UpdateShopDetails from './UpdateShopDetails';
 import './AdminDashboard.css';
 
 const AdminDashboard = ({ user, onLogout }) => {
@@ -36,6 +37,12 @@ const AdminDashboard = ({ user, onLogout }) => {
           >
             Update Footer
           </li>
+          <li 
+            className={activeTab === 'updateShopDetails' ? 'active' : ''} 
+            onClick={() => setActiveTab('updateShopDetails')}
+          >
+            Update Shop Info
+          </li>
         </ul>
         <button onClick={onLogout} className="admin-logout-btn">Logout</button>
       </aside>
@@ -57,6 +64,8 @@ const AdminDashboard = ({ user, onLogout }) => {
              <AddProduct />
           ) : activeTab === 'updateFooter' ? (
              <UpdateFooter />
+          ) : activeTab === 'updateShopDetails' ? (
+             <UpdateShopDetails />
           ) : null}
         </div>
       </main>

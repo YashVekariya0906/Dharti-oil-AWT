@@ -265,6 +265,69 @@ app.post('/api/navbar/update', upload.fields(navbarFields), async (req, res) => 
 
 
 
+// API endpoint to fetch shop details
+app.get('/api/shop-details', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM shop_details LIMIT 1');
+    if (rows.length > 0) {
+      res.json(rows[0]);
+    } else {
+      res.status(404).json({ message: 'Shop details not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// API endpoint to update shop details
+app.post('/api/shop-details/update', async (req, res) => {
+  try {
+    const {
+      main_title, main_description, product_highlights,
+      tin15_title, tin15_description, can15_title, can15_description,
+      can5_title, can5_description, bottle1_title, bottle1_description,
+      quality_description, usage_description, why_choose
+    } = req.body;
+    
+    const [rows] = await pool.query('SELECT id FROM shop_details LIMIT 1');
+    
+    if (rows.length > 0) {
+      const id = rows[0].id;
+      const query = `
+        UPDATE shop_details SET 
+          main_title=?, main_description=?, product_highlights=?,
+          tin15_title=?, tin15_description=?, can15_title=?, can15_description=?,
+          can5_title=?, can5_description=?, bottle1_title=?, bottle1_description=?,
+          quality_description=?, usage_description=?, why_choose=?
+        WHERE id=?`;
+      await pool.query(query, [
+        main_title, main_description, product_highlights,
+        tin15_title, tin15_description, can15_title, can15_description,
+        can5_title, can5_description, bottle1_title, bottle1_description,
+        quality_description, usage_description, why_choose, id
+      ]);
+      res.json({ message: 'Shop details updated successfully', id });
+    } else {
+      const query = `
+        INSERT INTO shop_details (
+          main_title, main_description, product_highlights,
+          tin15_title, tin15_description, can15_title, can15_description,
+          can5_title, can5_description, bottle1_title, bottle1_description,
+          quality_description, usage_description, why_choose
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+      await pool.query(query, [
+        main_title, main_description, product_highlights,
+        tin15_title, tin15_description, can15_title, can15_description,
+        can5_title, can5_description, bottle1_title, bottle1_description,
+        quality_description, usage_description, why_choose
+      ]);
+      res.json({ message: 'Shop details created successfully' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // API endpoint to fetch footer data
 app.get('/api/footer', async (req, res) => {
   try {
