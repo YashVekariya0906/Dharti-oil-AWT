@@ -5,7 +5,8 @@ import Login from './components/Login'
 import AdminDashboard from './components/AdminDashboard'
 import ImageSlider from './components/ImageSlider'
 import Footer from './components/Footer'
-import { FaHeart, FaShoppingBag, FaSyncAlt } from 'react-icons/fa';
+import InfoPage from './components/InfoPage'
+import { FaHeart, FaShoppingBag, FaInfoCircle } from 'react-icons/fa';
 import './App.css'
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
   const [showRegister, setShowRegister] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [user, setUser] = useState(null);
+  const [selectedProductInfo, setSelectedProductInfo] = useState(null);
 
   const handleLogin = (userData) => {
     setUser(userData);
@@ -94,9 +96,13 @@ function App() {
           
           {/* Main Content */}
           <main className="main-content">
-            <ImageSlider images={[navbarData.I1_path, navbarData.I2_path, navbarData.I3_path, navbarData.I4_path, navbarData.I5_path].filter(Boolean)} />
-            
-            <section className="features-section">
+            {selectedProductInfo ? (
+              <InfoPage product={selectedProductInfo} onBack={() => setSelectedProductInfo(null)} />
+            ) : (
+              <>
+                <ImageSlider images={[navbarData.I1_path, navbarData.I2_path, navbarData.I3_path, navbarData.I4_path, navbarData.I5_path].filter(Boolean)} />
+                
+                <section className="features-section">
               <h2>Our Products</h2>
               {loading ? (
                 <p style={{ textAlign: 'center' }}>Loading products from database...</p>
@@ -123,7 +129,10 @@ function App() {
                           
                           <div className="hover-actions">
                              <button className="hover-action-btn" title="Add to Cart"><FaShoppingBag /></button>
-                             <button className="hover-action-btn" title="Compare/Refresh"><FaSyncAlt /></button>
+                             <button className="hover-action-btn" title="More Info" onClick={() => {
+                               setSelectedProductInfo(item);
+                               window.scrollTo({ top: 0, behavior: 'smooth' });
+                             }}><FaInfoCircle /></button>
                           </div>
                         </div>
 
@@ -149,6 +158,8 @@ function App() {
                 alt="Intro" 
                 style={{ width: '100%', height: '250px', objectFit: 'cover' }} 
               />
+            )}
+              </>
             )}
           </main>
           
