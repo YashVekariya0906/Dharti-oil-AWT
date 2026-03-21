@@ -227,8 +227,16 @@ app.post('/api/navbar/delete', async (req, res) => {
 // API endpoint to update navbar data
 app.post('/api/navbar/update', upload.fields(navbarFields), async (req, res) => {
   try {
+    const [rows] = await pool.query('SELECT * FROM navbar LIMIT 1');
+    const oldRow = rows.length > 0 ? rows[0] : null;
+
     const constructPath = (field) => {
        if (req.files && req.files[field]) {
+          if (oldRow && oldRow[field]) {
+             const filename = oldRow[field].split('/').pop();
+             const filepath = path.join(__dirname, 'uploads', filename);
+             if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
+          }
           return 'http://localhost:5000/uploads/' + req.files[field][0].filename;
        }
        return req.body[field] || null;
@@ -242,10 +250,8 @@ app.post('/api/navbar/update', upload.fields(navbarFields), async (req, res) => 
     const I5_path = constructPath('I5_path');
     const intro_path = constructPath('intro_path');
     
-    const [rows] = await pool.query('SELECT nav_id FROM navbar LIMIT 1');
-    
-    if (rows.length > 0) {
-      const nav_id = rows[0].nav_id;
+    if (oldRow) {
+      const nav_id = oldRow.nav_id;
       await pool.query(
         'UPDATE navbar SET nav_logo_path = ?, I1_path = ?, I2_path = ?, I3_path = ?, I4_path = ?, I5_path = ?, intro_path = ? WHERE nav_id = ?',
         [nav_logo_path, I1_path, I2_path, I3_path, I4_path, I5_path, intro_path, nav_id]
