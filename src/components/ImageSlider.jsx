@@ -14,6 +14,7 @@ export default function ImageSlider({ images }) {
 
   if (!images || images.length === 0) return null;
 
+  
   return (
     <div className="slider-wrapper">
       <img src={images[currentIndex]} alt={`Slide ${currentIndex + 1}`} className="slider-image" />
