@@ -3,7 +3,7 @@ import './Navbar.css';
 import { FiShoppingCart, FiSearch } from 'react-icons/fi';
 import { FaRegHeart, FaBars, FaTimes } from 'react-icons/fa';
 
-const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user, onLoginClick, onRegisterClick, onLogoutClick }) => {
+const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user, onLoginClick, onRegisterClick, onLogoutClick, products = [], onProductSelect, onHomeClick, activePage = 'home' }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(3);
 
@@ -36,7 +36,7 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
         <div className="navbar-bottom-content">
           {/* Logo */}
           <div className="navbar-logo">
-            <a href="/" style={{ display: 'flex', alignItems: 'center' }}>
+            <a href="/" onClick={onHomeClick} style={{ display: 'flex', alignItems: 'center' }}>
               {logoData && <img src={logoData} alt="Logo" style={{ maxHeight: '40px', marginRight: '10px' }} />}
               {logoText}{' '}<span>{logoHighlight}</span>
             </a>
@@ -46,15 +46,30 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
           <nav className="navbar-nav desktop-nav">
             <ul className="nav-links">
               <li className="nav-item">
-                <a href="#home" className="nav-link">Home</a>
+                <a href="#home" className={`nav-link ${activePage === 'home' ? 'active' : ''}`} onClick={onHomeClick}>Home</a>
               </li>
               <li className="nav-item dropdown">
-                <a href="#shop" className="nav-link">Shop</a>
+                <a href="#shop" className={`nav-link ${activePage === 'shop' ? 'active' : ''}`}>Shop</a>
                 <ul className="dropdown-menu">
-                  <li><a href="#15kg Tin">15kg Tin</a></li>
-                  <li><a href="#15kg Can">15kg Can</a></li>
-                  <li><a href="#5kg Can">5kg Can</a></li>
-                  <li><a href="#1kg Bottel">1kg Bottle</a></li>
+                  {products.length > 0 ? (
+                    products.map(item => (
+                      <li key={item.product_id}>
+                        <a 
+                          href="#shop" 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if(onProductSelect && item.product_name !== 'Loading Product...') {
+                              onProductSelect(item);
+                            }
+                          }}
+                        >
+                          {item.product_name}
+                        </a>
+                      </li>
+                    ))
+                  ) : (
+                    <li><a href="#shop">No Products</a></li>
+                  )}
                 </ul>
               </li>
               <li className="nav-item">
@@ -99,14 +114,37 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
       {/* Mobile Navigation */}
       <div className={`mobile-nav ${isMobileMenuOpen ? 'open' : ''}`}>
         <ul className="mobile-nav-links">
-          <li><a href="#home" onClick={toggleMobileMenu}>Home</a></li>
+          <li>
+            <a href="#home" className={activePage === 'home' ? 'active' : ''} onClick={(e) => { 
+              toggleMobileMenu(); 
+              if(onHomeClick) onHomeClick(e); 
+            }}>
+              Home
+            </a>
+          </li>
           <li className="mobile-dropdown-parent">
-            <a href="#shop">Shop</a>
+            <a href="#shop" className={activePage === 'shop' ? 'active' : ''}>Shop</a>
             <ul className="mobile-dropdown">
-              <li><a href="#15kg Tin" onClick={toggleMobileMenu}>15kg Tin</a></li>
-              <li><a href="#15kg Can" onClick={toggleMobileMenu}>15kg Can</a></li>
-              <li><a href="#5kg Can" onClick={toggleMobileMenu}>5kg Can</a></li>
-              <li><a href="#1kg Bottle" onClick={toggleMobileMenu}>1kg Bottle</a></li>
+              {products.length > 0 ? (
+                products.map(item => (
+                  <li key={item.product_id}>
+                    <a 
+                      href="#shop" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if(onProductSelect && item.product_name !== 'Loading Product...') {
+                          onProductSelect(item);
+                        }
+                        toggleMobileMenu();
+                      }}
+                    >
+                      {item.product_name}
+                    </a>
+                  </li>
+                ))
+              ) : (
+                <li><a href="#shop" onClick={toggleMobileMenu}>No Products</a></li>
+              )}
             </ul>
           </li>
           <li><a href="#about" onClick={toggleMobileMenu}>About Us</a></li>

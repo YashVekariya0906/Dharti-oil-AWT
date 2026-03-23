@@ -131,8 +131,13 @@
   transition: width 0.3s ease;
 }
 
-.nav-link:hover::after {
+.nav-link:hover::after,
+.nav-link.active::after {
   width: 100%;
+}
+
+.nav-link.active {
+  color: var(--secondary-color);
 }
 
 /* Dropdown Menu */
@@ -300,7 +305,8 @@
     font-weight: 600;
   }
 
-  .mobile-nav-links > li > a:hover {
+  .mobile-nav-links > li > a:hover,
+  .mobile-nav-links > li > a.active {
     color: var(--secondary-color);
     background-color: var(--bg-light);
   }
