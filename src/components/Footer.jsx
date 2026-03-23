@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaFacebookF, FaInstagram } from 'react-icons/fa';
 import './Footer.css';
 
-export default function Footer({ logoData }) {
+export default function Footer({ logoData, onHomeClick, products = [], onProductSelect }) {
   const [data, setData] = useState({
     company_name: 'Dharti Oil',
     address: 'B-16, Privilon, Behind ISKCON Temple, Ambli-Bopal Road, Ahmedabad-380059.',
@@ -51,8 +51,30 @@ export default function Footer({ logoData }) {
         <div className="footer-col links-col">
           <h3 className="footer-heading">Quick Links</h3>
           <ul className="footer-links">
-            <li><a href={data.home_link || '#'}>Home</a></li>
-            <li><a href={data.shop_link || '#'}>Shop</a></li>
+            <li><a href={data.home_link || '#'} onClick={onHomeClick}>Home</a></li>
+            <li><a href="#shop" style={{ cursor: 'default', fontWeight: 'bold' }}>Shop Products</a>
+              <ul className="footer-links" style={{ paddingLeft: '15px', marginTop: '10px', marginBottom: '10px' }}>
+                {products.length > 0 ? (
+                  products.map(item => (
+                    <li key={item.product_id} style={{marginBottom: '5px'}}>
+                      <a 
+                        href="#shop" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if(onProductSelect && item.product_name !== 'Loading Product...') {
+                            onProductSelect(item);
+                          }
+                        }}
+                      >
+                        {item.product_name}
+                      </a>
+                    </li>
+                  ))
+                ) : (
+                  <li><a href="#shop">No Products</a></li>
+                )}
+              </ul>
+            </li>
             <li><a href={data.about_link || '#'}>About Us</a></li>
             <li><a href={data.contact_link || '#'}>Contact Us</a></li>
             <li><a href={data.blog_link || '#'}>Blogs</a></li>

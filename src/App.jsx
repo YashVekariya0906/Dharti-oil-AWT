@@ -36,6 +36,14 @@ function App() {
     setUser(null);
   };
 
+  const handleHomeClick = (e) => {
+    if (e) e.preventDefault();
+    setSelectedProductInfo(null);
+    setShowLogin(false);
+    setShowRegister(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   useEffect(() => {
     // Fetch configuration and products from backend
     const fetchData = async () => {
@@ -80,6 +88,13 @@ function App() {
   }
 
   // Public/User Routing
+  let activePage = 'home';
+  if (showLogin || showRegister) {
+    activePage = '';
+  } else if (selectedProductInfo) {
+    activePage = 'shop';
+  }
+
   return (
     <div className="app-container">
       {!showRegister && !showLogin ? (
@@ -92,6 +107,13 @@ function App() {
             onLoginClick={() => setShowLogin(true)}
             onRegisterClick={() => setShowRegister(true)} 
             onLogoutClick={handleLogout}
+            products={products}
+            onProductSelect={(item) => {
+              setSelectedProductInfo(item);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onHomeClick={handleHomeClick}
+            activePage={activePage}
           />
           
           {/* Main Content */}
@@ -163,7 +185,15 @@ function App() {
             )}
           </main>
           
-          <Footer logoData={navbarData.nav_logo_path} />
+          <Footer 
+            logoData={navbarData.nav_logo_path} 
+            onHomeClick={handleHomeClick} 
+            products={products}
+            onProductSelect={(item) => {
+              setSelectedProductInfo(item);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
         </>
       ) : showRegister ? (
         <div style={{ position: 'relative' }}>
