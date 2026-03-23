@@ -3,6 +3,9 @@ import AddProduct from './AddProduct';
 import UpdateNavbar from './UpdateNavbar';
 import UpdateFooter from './UpdateFooter';
 import UpdateShopDetails from './UpdateShopDetails';
+import AdminBlogForm from './AdminBlogForm';
+import AdminContactForm from './AdminContactForm';
+import AdminContactInquiries from './AdminContactInquiries';
 import './AdminDashboard.css';
 
 const AdminDashboard = ({ user, onLogout }) => {
@@ -32,6 +35,12 @@ const AdminDashboard = ({ user, onLogout }) => {
             Add Product
           </li>
           <li 
+            className={activeTab === 'blogManagement' ? 'active' : ''} 
+            onClick={() => setActiveTab('blogManagement')}
+          >
+            Blog Management
+          </li>
+          <li 
             className={activeTab === 'updateFooter' ? 'active' : ''} 
             onClick={() => setActiveTab('updateFooter')}
           >
@@ -42,6 +51,18 @@ const AdminDashboard = ({ user, onLogout }) => {
             onClick={() => setActiveTab('updateShopDetails')}
           >
             Update Shop Info
+          </li>
+          <li 
+            className={activeTab === 'updateContact' ? 'active' : ''} 
+            onClick={() => setActiveTab('updateContact')}
+          >
+            Update Contact Page
+          </li>
+          <li 
+            className={activeTab === 'contactInquiries' ? 'active' : ''} 
+            onClick={() => setActiveTab('contactInquiries')}
+          >
+            Contact Inquiries
           </li>
         </ul>
         <button onClick={onLogout} className="admin-logout-btn">Logout</button>
@@ -62,10 +83,16 @@ const AdminDashboard = ({ user, onLogout }) => {
              <UpdateNavbar />
           ) : activeTab === 'addProduct' ? (
              <AddProduct />
+          ) : activeTab === 'blogManagement' ? (
+             <AdminBlogForm />
           ) : activeTab === 'updateFooter' ? (
              <UpdateFooter />
           ) : activeTab === 'updateShopDetails' ? (
              <UpdateShopDetails />
+          ) : activeTab === 'updateContact' ? (
+             <AdminContactForm />
+          ) : activeTab === 'contactInquiries' ? (
+             <AdminContactInquiries />
           ) : null}
         </div>
       </main>
