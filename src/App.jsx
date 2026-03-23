@@ -6,6 +6,8 @@ import AdminDashboard from './components/AdminDashboard'
 import ImageSlider from './components/ImageSlider'
 import Footer from './components/Footer'
 import InfoPage from './components/InfoPage'
+import Blog from './components/Blog'
+import ContactUs from './components/ContactUs'
 import { FaHeart, FaShoppingBag, FaInfoCircle } from 'react-icons/fa';
 import './App.css'
 
@@ -25,11 +27,21 @@ function App() {
   const [showLogin, setShowLogin] = useState(false);
   const [user, setUser] = useState(null);
   const [selectedProductInfo, setSelectedProductInfo] = useState(null);
+  const [showBlog, setShowBlog] = useState(false);
+  const [showContact, setShowContact] = useState(false);
 
   const handleLogin = (userData) => {
     setUser(userData);
     setShowLogin(false);
     setShowRegister(false);
+    
+    // Check if we need to redirect to Contact page
+    if (localStorage.getItem('redirectAfterAuth') === 'contact') {
+      localStorage.removeItem('redirectAfterAuth');
+      setShowContact(true);
+      setShowBlog(false);
+      setSelectedProductInfo(null);
+    }
   };
 
   const handleLogout = () => {
@@ -41,6 +53,8 @@ function App() {
     setSelectedProductInfo(null);
     setShowLogin(false);
     setShowRegister(false);
+    setShowBlog(false);
+    setShowContact(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -93,6 +107,10 @@ function App() {
     activePage = '';
   } else if (selectedProductInfo) {
     activePage = 'shop';
+  } else if (showBlog) {
+    activePage = 'blog';
+  } else if (showContact) {
+    activePage = 'contact';
   }
 
   return (
@@ -113,6 +131,18 @@ function App() {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             onHomeClick={handleHomeClick}
+            onBlogClick={() => {
+              setShowBlog(true);
+              setShowContact(false);
+              setSelectedProductInfo(null);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onContactClick={() => {
+              setShowContact(true);
+              setShowBlog(false);
+              setSelectedProductInfo(null);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
             activePage={activePage}
           />
           
@@ -120,6 +150,10 @@ function App() {
           <main className="main-content">
             {selectedProductInfo ? (
               <InfoPage product={selectedProductInfo} onBack={() => setSelectedProductInfo(null)} />
+            ) : showBlog ? (
+              <Blog />
+            ) : showContact ? (
+              <ContactUs user={user} onRequireLogin={() => setShowLogin(true)} />
             ) : (
               <>
                 <ImageSlider images={[navbarData.I1_path, navbarData.I2_path, navbarData.I3_path, navbarData.I4_path, navbarData.I5_path].filter(Boolean)} />

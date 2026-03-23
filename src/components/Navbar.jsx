@@ -3,7 +3,7 @@ import './Navbar.css';
 import { FiShoppingCart, FiSearch } from 'react-icons/fi';
 import { FaRegHeart, FaBars, FaTimes } from 'react-icons/fa';
 
-const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user, onLoginClick, onRegisterClick, onLogoutClick, products = [], onProductSelect, onHomeClick, activePage = 'home' }) => {
+const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user, onLoginClick, onRegisterClick, onLogoutClick, products = [], onProductSelect, onHomeClick, onBlogClick, onContactClick, activePage = 'home' }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(3);
 
@@ -76,10 +76,10 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
                 <a href="#about" className="nav-link">About Us</a>
               </li>
               <li className="nav-item">
-                <a href="#blog" className="nav-link">Blog</a>
+                <a href="#blog" className={`nav-link ${activePage === 'blog' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); onBlogClick(); }}>Blog</a>
               </li>
               <li className="nav-item">
-                <a href="#contact" className="nav-link">Contact</a>
+                <a href="#contact" className={`nav-link ${activePage === 'contact' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); if (onContactClick) onContactClick(); }}>Contact</a>
               </li>
             </ul>
           </nav>
@@ -148,8 +148,8 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
             </ul>
           </li>
           <li><a href="#about" onClick={toggleMobileMenu}>About Us</a></li>
-          <li><a href="#blog" onClick={toggleMobileMenu}>Blog</a></li>
-          <li><a href="#contact" onClick={toggleMobileMenu}>Contact</a></li>
+          <li><a href="#blog" className={activePage === 'blog' ? 'active' : ''} onClick={(e) => { e.preventDefault(); onBlogClick(); toggleMobileMenu(); }}>Blog</a></li>
+          <li><a href="#contact" className={activePage === 'contact' ? 'active' : ''} onClick={(e) => { e.preventDefault(); if (onContactClick) onContactClick(); toggleMobileMenu(); }}>Contact</a></li>
 
           <li className="mobile-bonus-icons">
             <div className="icon-wrapper search-icon">
