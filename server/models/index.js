@@ -10,6 +10,18 @@ const ShopDetails = require('./ShopDetails');
 const Blog = require('./Blog');
 const ContactDetails = require('./ContactDetails');
 const ContactInquiry = require('./ContactInquiry');
+const Broker = require('./Broker');
+const SellingRequest = require('./SellingRequest');
+const GlobalPrice = require('./GlobalPrice');
+
+// Define Relationships
+// SellingRequest belongs to User
+SellingRequest.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+User.hasMany(SellingRequest, { foreignKey: 'user_id', as: 'selling_requests' });
+
+// SellingRequest belongs to Broker (User table as broker now)
+SellingRequest.belongsTo(User, { foreignKey: 'broker_id', as: 'broker' });
+User.hasMany(SellingRequest, { foreignKey: 'broker_id', as: 'broker_requests' });
 
 // Sync database (create tables automatically)
 const syncDatabase = async () => {
@@ -33,5 +45,8 @@ module.exports = {
   Blog,
   ContactDetails,
   ContactInquiry,
+  Broker,
+  SellingRequest,
+  GlobalPrice,
   syncDatabase
 };

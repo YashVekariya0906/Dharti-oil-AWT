@@ -3,6 +3,8 @@ import Navbar from './components/Navbar'
 import Register from './components/Register'
 import Login from './components/Login'
 import AdminDashboard from './components/AdminDashboard'
+import BrokerDashboard from './components/BrokerDashboard'
+import UserProfile from './components/UserProfile'
 import ImageSlider from './components/ImageSlider'
 import Footer from './components/Footer'
 import InfoPage from './components/InfoPage'
@@ -29,11 +31,14 @@ function App() {
   const [selectedProductInfo, setSelectedProductInfo] = useState(null);
   const [showBlog, setShowBlog] = useState(false);
   const [showContact, setShowContact] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
   const handleLogin = (userData) => {
+    console.log('🟢 User logged in:', userData);
     setUser(userData);
     setShowLogin(false);
     setShowRegister(false);
+    setShowProfile(false);
     
     // Check if we need to redirect to Contact page
     if (localStorage.getItem('redirectAfterAuth') === 'contact') {
@@ -45,7 +50,9 @@ function App() {
   };
 
   const handleLogout = () => {
+    console.log('🔴 User logged out');
     setUser(null);
+    setShowProfile(false);
   };
 
   const handleHomeClick = (e) => {
@@ -101,6 +108,11 @@ function App() {
     return <AdminDashboard user={user} onLogout={handleLogout} />;
   }
 
+  // Broker Routing
+  if (user && user.role === 'broker') {
+    return <BrokerDashboard user={user} onLogout={handleLogout} />;
+  }
+
   // Public/User Routing
   let activePage = 'home';
   if (showLogin || showRegister) {
@@ -125,6 +137,7 @@ function App() {
             onLoginClick={() => setShowLogin(true)}
             onRegisterClick={() => setShowRegister(true)} 
             onLogoutClick={handleLogout}
+            onProfileClick={() => setShowProfile(true)}
             products={products}
             onProductSelect={(item) => {
               setSelectedProductInfo(item);
@@ -228,6 +241,26 @@ function App() {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
           />
+          
+          {/* User Profile Modal */}
+          {showProfile && user && user.role === 'user' && (
+            <>
+              {console.log('✅ Rendering UserProfile modal for user:', user)}
+              <UserProfile 
+                user={user} 
+                onClose={() => {
+                  console.log('🔵 Profile modal closed');
+                  setShowProfile(false);
+                }}
+                onUpdate={(updatedUser) => {
+                  setUser(updatedUser);
+                }}
+              />
+            </>
+          )}
+          {showProfile && user && user.role !== 'user' && (
+            console.log('❌ showProfile=true but user.role is not "user":', user.role)
+          )}
         </>
       ) : showRegister ? (
         <div style={{ position: 'relative' }}>
