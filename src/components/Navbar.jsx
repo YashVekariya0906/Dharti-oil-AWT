@@ -3,7 +3,7 @@ import './Navbar.css';
 import { FiShoppingCart, FiSearch } from 'react-icons/fi';
 import { FaRegHeart, FaBars, FaTimes } from 'react-icons/fa';
 
-const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user, onLoginClick, onRegisterClick, onLogoutClick, products = [], onProductSelect, onHomeClick, onBlogClick, onContactClick, activePage = 'home' }) => {
+const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user, onLoginClick, onRegisterClick, onBrokerLoginClick, onLogoutClick, onProfileClick, products = [], onProductSelect, onHomeClick, onBlogClick, onContactClick, activePage = 'home' }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(3);
 
@@ -19,6 +19,18 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
           {user ? (
             <>
               <span style={{ color: '#555', fontSize: '14px', marginRight: '10px' }}>Welcome, {user.username}</span>
+              {user.role === 'user' && onProfileClick && (
+                <button 
+                  className="navbar-btn profile-btn" 
+                  onClick={() => {
+                    console.log('🔵 Profile button clicked');
+                    onProfileClick();
+                  }}
+                  style={{ cursor: 'pointer' }}
+                >
+                  👤 Profile
+                </button>
+              )}
               <button className="navbar-btn login-btn" onClick={onLogoutClick}>Logout</button>
             </>
           ) : (

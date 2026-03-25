@@ -55,6 +55,43 @@
   color: var(--secondary-color);
 }
 
+.navbar-btn.login-btn {
+  color: #2c3e50;
+}
+
+.navbar-btn.register-btn {
+  color: #27ae60;
+}
+
+.navbar-btn.profile-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  margin: 0 8px;
+  font-weight: 600;
+}
+
+.navbar-btn.profile-btn:hover {
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.navbar-btn.broker-login-btn {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.navbar-btn.broker-login-btn:hover {
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 87, 108, 0.3);
+}
+
 .navbar-divider {
   margin: 0 10px;
   color: #ccc;

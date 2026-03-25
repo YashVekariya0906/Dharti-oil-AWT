@@ -5,7 +5,7 @@ const nodemailer = require('nodemailer');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { SiteConfig, Navbar, Product, User, FooterSettings, ShopDetails, Blog, ContactDetails, ContactInquiry, syncDatabase } = require('./models');
+const { SiteConfig, Navbar, Product, User, FooterSettings, ShopDetails, Blog, ContactDetails, ContactInquiry, SellingRequest, GlobalPrice, syncDatabase, sequelize } = require('./models');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const storage = multer.diskStorage({
@@ -91,9 +91,43 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+async function ensureSellingRequestBrokerFk() {
+  try {
+    const [constraints] = await sequelize.query(`
+      SELECT CONSTRAINT_NAME, REFERENCED_TABLE_NAME
+      FROM information_schema.KEY_COLUMN_USAGE
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'selling_requests'
+        AND COLUMN_NAME = 'broker_id'
+    `);
+
+    for (const row of constraints) {
+      if (row.CONSTRAINT_NAME) {
+        await sequelize.query(`ALTER TABLE selling_requests DROP FOREIGN KEY \`${row.CONSTRAINT_NAME}\``);
+      }
+    }
+  } catch (error) {
+    console.warn('Could not drop existing selling_requests.broker_id FK:', error.message);
+  }
+
+  try {
+    await sequelize.query(`
+      ALTER TABLE selling_requests
+      ADD CONSTRAINT fk_selling_requests_broker_id_register
+      FOREIGN KEY (broker_id) REFERENCES register(user_id)
+      ON DELETE SET NULL
+      ON UPDATE CASCADE
+    `);
+    console.log('✅ selling_requests.broker_id now references register.user_id');
+  } catch (error) {
+    console.warn('Could not create FK to register.user_id:', error.message);
+  }
+}
+
 // Initialize database and sync tables
 (async () => {
   await syncDatabase();
+  await ensureSellingRequestBrokerFk();
 })();
 
 // API endpoint to fetch website configuration (logo and text)
@@ -376,7 +410,13 @@ app.post('/api/footer/update', async (req, res) => {
 // API endpoint for user registration
 app.post('/api/register', async (req, res) => {
   try {
-    const { username, moblie_no, emali, address, pincode, password, role } = req.body;
+    const username = (req.body.username || '').trim();
+    const moblie_no = (req.body.moblie_no || '').trim();
+    const emali = (req.body.emali || '').trim().toLowerCase();
+    const address = (req.body.address || '').trim();
+    const pincode = (req.body.pincode || '').trim();
+    const password = (req.body.password || '').trim();
+    const role = req.body.role || 'user';
 
     // Validate required fields
     if (!username || !moblie_no || !emali || !address || !pincode || !password) {
@@ -387,8 +427,8 @@ app.post('/api/register', async (req, res) => {
     const existingUser = await User.findOne({
       where: {
         [require('sequelize').Op.or]: [
-          { emali: emali },
-          { moblie_no: moblie_no }
+          { emali },
+          { moblie_no }
         ]
       }
     });
@@ -587,7 +627,9 @@ app.post('/api/verify-otp', async (req, res) => {
 // API endpoint for user login
 app.post('/api/login', async (req, res) => {
   try {
-    const { emali, password } = req.body;
+    const emaliRaw = (req.body.emali || '').trim();
+    const password = (req.body.password || '').trim();
+    const emali = emaliRaw.toLowerCase();
 
     if (!emali || !password) {
       return res.status(400).json({ message: 'Email and password are required!' });
@@ -595,7 +637,7 @@ app.post('/api/login', async (req, res) => {
 
     // Check if user exists
     const user = await User.findOne({
-      where: { emali: emali }
+      where: { emali }
     });
 
     if (!user) {
@@ -611,6 +653,11 @@ app.post('/api/login', async (req, res) => {
       });
     }
 
+    // Check if broker is active
+    if (user.role === 'broker' && user.status !== 'Active') {
+      return res.status(403).json({ message: 'Broker account is inactive.' });
+    }
+
     // Verify password
     const passwordMatch = await bcrypt.compare(password, user.password);
 
@@ -622,7 +669,12 @@ app.post('/api/login', async (req, res) => {
       user_id: user.user_id,
       username: user.username,
       emali: user.emali,
-      role: user.role
+      moblie_no: user.moblie_no,
+      address: user.address,
+      pincode: user.pincode,
+      role: user.role,
+      commission_percent: user.commission_percent || 0,
+      status: user.status || 'Active'
     };
 
     console.log(`✅ [LOGIN SUCCESS] User ${emali} logged in successfully`);
@@ -635,6 +687,401 @@ app.post('/api/login', async (req, res) => {
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Login failed. Please try again.' });
+  }
+});
+
+// GET user profile by ID
+app.get('/api/users/:id', async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    res.status(200).json({
+      user_id: user.user_id,
+      username: user.username,
+      emali: user.emali,
+      moblie_no: user.moblie_no,
+      address: user.address,
+      pincode: user.pincode,
+      role: user.role
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Broker Endpoints
+app.post('/api/admin/brokers', async (req, res) => {
+  try {
+    const username = (req.body.username || '').trim();
+    const moblie_no = (req.body.moblie_no || '').trim();
+    const address = (req.body.address || '').trim();
+    const password = (req.body.password || '').trim();
+    const emali = (req.body.emali || '').trim().toLowerCase();
+    const pincode = (req.body.pincode || '').trim();
+    const commission_percent = req.body.commission_percent;
+
+    // Validate required fields
+    if (!username || !moblie_no || !address || !password || !emali || !pincode) {
+      console.log('❌ Missing required fields:', { username, moblie_no, address, password, emali, pincode });
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    // Check if broker exists
+    const existingBroker = await User.findOne({ where: { emali, role: 'broker' } });
+    if (existingBroker) {
+      console.log(`❌ Broker with email ${emali} already exists`);
+      return res.status(409).json({ message: 'Broker with this email already exists!' });
+    }
+
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Generate OTP for broker verification
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    console.log('📝 Creating broker with data:', { username, emali, moblie_no, address, pincode, commission_percent: commission_percent || 0 });
+
+    const broker = await User.create({
+      username,
+      moblie_no,
+      emali,
+      address,
+      pincode,
+      password: hashedPassword,
+      role: 'broker',
+      commission_percent: commission_percent || 0,
+      status: 'Inactive',
+      otp_code: otpCode,
+      otp_expiry: otpExpiry
+    });
+
+    console.log('✅ Broker created pending verification:', broker.toJSON());
+
+    // Send OTP email
+    try {
+      if (transporter) {
+        await transporter.sendMail({
+          from: `"Dharti Oil App" <${process.env.EMAIL_USER}>`,
+          to: emali,
+          subject: 'Broker Verification OTP - Dharti Oil',
+          html: `<p>Your broker verification code is <strong>${otpCode}</strong>. This code expires in 10 minutes.</p>`
+        });
+      }
+    } catch (emailError) {
+      console.error('⚠️ Failed to send broker OTP email:', emailError.message);
+    }
+
+    res.status(201).json({
+      message: 'Broker created and OTP sent. Verify OTP to activate broker.',
+      emali,
+      user_id: broker.user_id,
+      status: broker.status
+    });
+  } catch (error) {
+    console.error('❌ Error creating broker:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/admin/brokers', async (req, res) => {
+  try {
+    // return all brokers for admin view (active + inactive)
+    const brokers = await User.findAll({ where: { role: 'broker' }, order: [['user_id', 'DESC']] });
+    res.json(brokers);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/api/admin/brokers/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const broker = await User.findByPk(id);
+    if (!broker || broker.role !== 'broker') {
+      return res.status(404).json({ message: 'Broker not found' });
+    }
+    await User.destroy({ where: { user_id: id } });
+    res.json({ message: 'Broker deleted successfully' });
+  } catch (error) {
+    console.error('❌ Error deleting broker:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/admin/brokers/verify-otp', async (req, res) => {
+  try {
+    const { emali, otp_code } = req.body;
+    if (!emali || !otp_code) {
+      return res.status(400).json({ message: 'Email and OTP are required' });
+    }
+
+    const broker = await User.findOne({ 
+      where: { 
+        emali,
+        role: 'broker',
+        otp_code,
+        otp_expiry: { [require('sequelize').Op.gte]: new Date() }
+      }
+    });
+
+    if (!broker) {
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
+    }
+
+    await User.update({ status: 'Active', otp_code: null, otp_expiry: null }, { where: { user_id: broker.user_id } });
+
+    const updatedBroker = await User.findByPk(broker.user_id);
+    res.status(200).json({ message: 'Broker verified and activated', broker: updatedBroker });
+  } catch (error) {
+    console.error('❌ Error verifying broker OTP:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/api/admin/brokers/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { username, moblie_no, address, pincode, commission_percent, status, password, emali } = req.body;
+
+    const broker = await User.findByPk(id);
+    if (!broker || broker.role !== 'broker') {
+      return res.status(404).json({ message: 'Broker not found' });
+    }
+
+    const updates = {
+      username: username ? username.trim() : broker.username,
+      moblie_no: moblie_no ? moblie_no.trim() : broker.moblie_no,
+      address: address ? address.trim() : broker.address,
+      pincode: pincode ? pincode.trim() : broker.pincode,
+      commission_percent: commission_percent != null ? commission_percent : broker.commission_percent,
+      status: status || broker.status
+    };
+
+    if (emali) {
+      updates.emali = emali.trim().toLowerCase();
+    }
+
+    if (password && password.trim()) {
+      const saltRounds = 10;
+      updates.password = await bcrypt.hash(password.trim(), saltRounds);
+    }
+
+    await User.update(updates, { where: { user_id: id } });
+
+    const updatedBroker = await User.findByPk(id);
+    res.status(200).json({ message: 'Broker updated successfully', broker: updatedBroker });
+  } catch (error) {
+    console.error('❌ Error updating broker:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Global Price Endpoints
+app.get('/api/admin/global-price', async (req, res) => {
+  try {
+    let globalPrice = await GlobalPrice.findOne();
+    if (!globalPrice) {
+      globalPrice = await GlobalPrice.create({ current_price: 0 });
+    }
+    res.json(globalPrice);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/admin/global-price', async (req, res) => {
+  try {
+    const { current_price } = req.body;
+    
+    if (!current_price && current_price !== 0) {
+      console.log('❌ Current price is required');
+      return res.status(400).json({ message: 'Current price is required' });
+    }
+
+    console.log('📝 Updating global price to:', current_price);
+
+    let globalPrice = await GlobalPrice.findOne();
+    if (globalPrice) {
+      await GlobalPrice.update({ current_price }, { where: { id: globalPrice.id } });
+      console.log('✅ Global price updated');
+    } else {
+      globalPrice = await GlobalPrice.create({ current_price });
+      console.log('✅ Global price created');
+    }
+
+    const updated = await GlobalPrice.findOne();
+    res.json({ message: 'Global Price updated successfully!', globalPrice: updated });
+  } catch (error) {
+    console.error('❌ Error updating global price:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Selling Request Endpoints
+app.post('/api/users/selling-requests', async (req, res) => {
+  try {
+    const { user_id, stock_per_mound, customer_price } = req.body;
+    const globalPrice = await GlobalPrice.findOne();
+    const our_price = globalPrice ? globalPrice.current_price : 0;
+    
+    const request = await SellingRequest.create({
+      user_id, stock_per_mound, our_price, customer_price
+    });
+    res.status(201).json({ message: 'Selling Request created successfully!', request });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/admin/selling-requests', async (req, res) => {
+  try {
+    const requests = await SellingRequest.findAll({
+      include: [
+        { model: User, as: 'user' },
+        { model: User, as: 'broker' }
+      ],
+      order: [['created_at', 'DESC']]
+    });
+    res.json(requests);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/api/admin/selling-requests/:id/accept', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { broker_id } = req.body;
+    
+    await SellingRequest.update({ broker_id, status: 'Accepted' }, { where: { request_id: id } });
+    res.json({ message: 'Selling request accepted and broker assigned.' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/brokers/:broker_id/selling-requests', async (req, res) => {
+  try {
+    const { broker_id } = req.params;
+    const requests = await SellingRequest.findAll({
+      where: { broker_id },
+      include: [{ model: User, as: 'user' }],
+      order: [['created_at', 'DESC']]
+    });
+    res.json(requests);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/api/brokers/selling-requests/:id/schedule', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { visit_day, visit_time } = req.body;
+    
+    await SellingRequest.update({ visit_day, visit_time, status: 'Scheduled' }, { where: { request_id: id } });
+    res.json({ message: 'Visit scheduled successfully.' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/api/brokers/selling-requests/:id/report', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { delivered_quantity, broker_comments } = req.body;
+
+    const request = await SellingRequest.findByPk(id);
+    if (!request) {
+      return res.status(404).json({ message: 'Selling request not found' });
+    }
+
+    await SellingRequest.update({
+      delivered_quantity: delivered_quantity != null ? delivered_quantity : request.delivered_quantity,
+      broker_comments: broker_comments != null ? broker_comments : request.broker_comments,
+      is_visited: true,
+      status: 'Completed'
+    }, { where: { request_id: id } });
+
+    res.json({ message: 'Visit report submitted successfully.' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// User Profile Endpoints
+app.get('/api/users/:id/profile', async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/api/users/:id/profile', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { username, moblie_no, address, pincode, new_emali } = req.body;
+    
+    const user = await User.findByPk(id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    
+    if (new_emali && new_emali !== user.emali) {
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      console.log(`\n[OTP GENERATED] Code for email change ${new_emali}: ${otpCode}\n`);
+      
+      await User.update({
+        username: username || user.username,
+        moblie_no: moblie_no || user.moblie_no,
+        address: address || user.address,
+        pincode: pincode || user.pincode,
+        otp_code: otpCode,
+        otp_expiry: new Date(Date.now() + 10 * 60 * 1000)
+      }, { where: { user_id: id } });
+
+      try {
+        if(transporter){
+           await transporter.sendMail({
+              from: `"Dharti Oil App" <${process.env.EMAIL_USER}>`,
+              to: new_emali,
+              subject: 'Verify Your New Email - Dharti Oil',
+              html: `<p>Your verification code is: ${otpCode}</p>`
+            });
+        }
+      } catch (e) {
+        console.error('Failed to send email:', e);
+      }
+      return res.status(200).json({ message: 'Profile updated. OTP sent to verify new email.', email_changed: true, new_emali });
+    } else {
+      await User.update({
+        username: username || user.username,
+        moblie_no: moblie_no || user.moblie_no,
+        address: address || user.address,
+        pincode: pincode || user.pincode
+      }, { where: { user_id: id } });
+      return res.status(200).json({ message: 'Profile updated successfully!', email_changed: false });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/users/:id/verify-email', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { new_emali, otp_code } = req.body;
+    
+    const user = await User.findOne({ where: { user_id: id, otp_code, otp_expiry: { [require('sequelize').Op.gte]: new Date() } } });
+    if (!user) return res.status(400).json({ message: 'Invalid or expired OTP.' });
+    
+    await User.update({ emali: new_emali, otp_code: null, otp_expiry: null }, { where: { user_id: id } });
+    res.status(200).json({ message: 'Email updated successfully!' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -875,6 +1322,234 @@ app.get('/api/admin/contact-inquiries', async (req, res) => {
     res.json(inquiries);
   } catch (error) {
     console.error('Error fetching inquiries:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// User Profile Update Endpoint
+app.put('/api/users/profile', async (req, res) => {
+  try {
+    const { user_id, username, emali, moblie_no, address, pincode, otp_code } = req.body;
+
+    if (!user_id) {
+      return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    const user = await User.findByPk(user_id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // If OTP code provided, finalize email verification + update profile
+    if (otp_code) {
+      if (!user.otp_code || user.otp_code !== otp_code || user.otp_expiry < new Date()) {
+        return res.status(400).json({ message: 'Invalid or expired OTP.' });
+      }
+
+      await User.update({
+        username: username || user.username,
+        emali: emali || user.emali,
+        moblie_no: moblie_no || user.moblie_no,
+        address: address || user.address,
+        pincode: pincode || user.pincode,
+        otp_code: null,
+        otp_expiry: null
+      }, { where: { user_id } });
+
+      const updatedUser = await User.findByPk(user_id);
+      return res.status(200).json({
+        message: 'Email verified and profile updated successfully!',
+        email_changed: true,
+        user: {
+          user_id: updatedUser.user_id,
+          username: updatedUser.username,
+          emali: updatedUser.emali,
+          moblie_no: updatedUser.moblie_no,
+          address: updatedUser.address,
+          pincode: updatedUser.pincode,
+          role: updatedUser.role
+        }
+      });
+    }
+
+    // Check if email is changing
+    const emailHasChanged = emali && emali !== user.emali;
+
+    if (emailHasChanged) {
+      // Generate OTP for email change
+      const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+      console.log(`\n[OTP GENERATED] Code for email change ${emali}: ${generatedOtp}\n`);
+
+      await User.update({
+        username: username || user.username,
+        moblie_no: moblie_no || user.moblie_no,
+        address: address || user.address,
+        pincode: pincode || user.pincode,
+        otp_code: generatedOtp,
+        otp_expiry: new Date(Date.now() + 10 * 60 * 1000)
+      }, { where: { user_id } });
+
+      // Send OTP email
+      try {
+        if (transporter) {
+          await transporter.sendMail({
+            from: `"Dharti Oil App" <${process.env.EMAIL_USER}>`,
+            to: emali,
+            subject: 'Verify Your New Email - Dharti Oil',
+            html: `<p>Your verification code is: <strong>${generatedOtp}</strong></p><p>This code will expire in 10 minutes.</p>`
+          });
+        }
+      } catch (emailError) {
+        console.error('⚠️ Failed to send OTP:', emailError.message);
+      }
+
+      return res.status(200).json({
+        message: 'Profile updated. OTP sent to verify new email.',
+        email_changed: true,
+        new_email: emali
+      });
+    } else {
+      // No email change, just update profile
+      await User.update({
+        username: username || user.username,
+        moblie_no: moblie_no || user.moblie_no,
+        address: address || user.address,
+        pincode: pincode || user.pincode
+      }, { where: { user_id } });
+
+      const updatedUser = await User.findByPk(user_id);
+      return res.status(200).json({
+        message: 'Profile updated successfully!',
+        email_changed: false,
+        user: {
+          user_id: updatedUser.user_id,
+          username: updatedUser.username,
+          emali: updatedUser.emali,
+          moblie_no: updatedUser.moblie_no,
+          address: updatedUser.address,
+          pincode: updatedUser.pincode,
+          role: updatedUser.role
+        }
+      });
+    }
+  } catch (error) {
+    console.error('❌ Error updating profile:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// User OTP Verification for Email Change (Send OTP)
+app.post('/api/users/send-otp', async (req, res) => {
+  try {
+    const { email, user_id } = req.body;
+
+    if (!email || !user_id) {
+      return res.status(400).json({ message: 'Email and user ID are required' });
+    }
+
+    const user = await User.findByPk(user_id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log(`\n[OTP GENERATED] Code for ${email}: ${otpCode}\n`);
+
+    await User.update({
+      otp_code: otpCode,
+      otp_expiry: new Date(Date.now() + 10 * 60 * 1000)
+    }, { where: { user_id } });
+
+    try {
+      if (transporter) {
+        await transporter.sendMail({
+          from: `"Dharti Oil App" <${process.env.EMAIL_USER}>`,
+          to: email,
+          subject: 'Verify Your New Email - Dharti Oil',
+          html: `<p>Your verification code is: <strong>${otpCode}</strong></p><p>This code will expire in 10 minutes.</p>`
+        });
+      }
+    } catch (emailError) {
+      console.error('⚠️ Failed to send OTP:', emailError.message);
+    }
+
+    res.status(200).json({ message: 'OTP sent successfully', email });
+  } catch (error) {
+    console.error('❌ Error sending OTP:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// User OTP Verification for Email Change (Verify OTP)
+app.post('/api/users/verify-otp', async (req, res) => {
+  try {
+    const { email, otp_code, user_id } = req.body;
+
+    if (!email || !otp_code || !user_id) {
+      return res.status(400).json({ message: 'Email, OTP, and user ID are required' });
+    }
+
+    const user = await User.findOne({ 
+      where: { 
+        user_id, 
+        otp_code, 
+        otp_expiry: { [require('sequelize').Op.gte]: new Date() } 
+      } 
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
+    }
+
+    // Update email and clear OTP
+    await User.update({
+      emali: email,
+      otp_code: null,
+      otp_expiry: null
+    }, { where: { user_id } });
+
+    console.log(`✅ [OTP VERIFIED] User ${user_id} email changed to ${email}`);
+
+    res.status(200).json({ message: 'Email verified and updated successfully!' });
+  } catch (error) {
+    console.error('❌ Error verifying OTP:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get all selling requests with user and broker details (for admin)
+app.get('/api/admin/selling-requests-full', async (req, res) => {
+  try {
+    const requests = await SellingRequest.findAll({
+      include: [
+        { model: User, as: 'user' },
+        { model: User, as: 'broker' }
+      ],
+      order: [['created_at', 'DESC']]
+    });
+    res.json(requests);
+  } catch (error) {
+    console.error('Error fetching selling requests:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get brokers by pincode
+app.get('/api/brokers/by-pincode/:pincode', async (req, res) => {
+  try {
+    const { pincode } = req.params;
+    const brokers = await User.findAll({
+      where: {
+        pincode,
+        role: 'broker',
+        status: 'Active',
+        otp_code: null
+      },
+      attributes: ['user_id', 'username', 'emali', 'moblie_no', 'address', 'pincode', 'commission_percent', 'status']
+    });
+    res.json(brokers);
+  } catch (error) {
+    console.error('Error fetching brokers:', error);
     res.status(500).json({ error: error.message });
   }
 });

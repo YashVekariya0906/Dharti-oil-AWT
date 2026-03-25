@@ -6,6 +6,9 @@ import UpdateShopDetails from './UpdateShopDetails';
 import AdminBlogForm from './AdminBlogForm';
 import AdminContactForm from './AdminContactForm';
 import AdminContactInquiries from './AdminContactInquiries';
+import AdminBrokerForm from './AdminBrokerForm';
+import AdminGlobalPrice from './AdminGlobalPrice';
+import AdminSellingRequests from './AdminSellingRequests';
 import './AdminDashboard.css';
 
 const AdminDashboard = ({ user, onLogout }) => {
@@ -64,6 +67,24 @@ const AdminDashboard = ({ user, onLogout }) => {
           >
             Contact Inquiries
           </li>
+          <li 
+            className={activeTab === 'brokers' ? 'active' : ''} 
+            onClick={() => setActiveTab('brokers')}
+          >
+            Broker Management
+          </li>
+          <li 
+            className={activeTab === 'globalPrice' ? 'active' : ''} 
+            onClick={() => setActiveTab('globalPrice')}
+          >
+            Global Selling Price
+          </li>
+          <li 
+            className={activeTab === 'sellingRequests' ? 'active' : ''} 
+            onClick={() => setActiveTab('sellingRequests')}
+          >
+            Selling Requests
+          </li>
         </ul>
         <button onClick={onLogout} className="admin-logout-btn">Logout</button>
       </aside>
@@ -93,6 +114,12 @@ const AdminDashboard = ({ user, onLogout }) => {
              <AdminContactForm />
           ) : activeTab === 'contactInquiries' ? (
              <AdminContactInquiries />
+          ) : activeTab === 'brokers' ? (
+             <AdminBrokerForm />
+          ) : activeTab === 'globalPrice' ? (
+             <AdminGlobalPrice />
+          ) : activeTab === 'sellingRequests' ? (
+             <AdminSellingRequests />
           ) : null}
         </div>
       </main>

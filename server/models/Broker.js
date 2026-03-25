@@ -1,21 +1,21 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('./database');
 
-const User = sequelize.define('User', {
-  user_id: {
+const Broker = sequelize.define('Broker', {
+  broker_id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true
   },
-  username: {
+  name: {
     type: DataTypes.STRING(255),
     allowNull: false
   },
-  moblie_no: {
+  mobile_no: {
     type: DataTypes.STRING(20),
     allowNull: false
   },
-  emali: {
+  email: {
     type: DataTypes.STRING(255),
     allowNull: false,
     unique: true
@@ -32,19 +32,6 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING(255),
     allowNull: false
   },
-  role: {
-    type: DataTypes.STRING(50),
-    allowNull: false,
-    defaultValue: 'user'
-  },
-  otp_code: {
-    type: DataTypes.STRING(10),
-    allowNull: true
-  },
-  otp_expiry: {
-    type: DataTypes.DATE,
-    allowNull: true
-  },
   commission_percent: {
     type: DataTypes.DECIMAL(5, 2),
     allowNull: false,
@@ -54,10 +41,25 @@ const User = sequelize.define('User', {
     type: DataTypes.ENUM('Active', 'Inactive'),
     allowNull: false,
     defaultValue: 'Active'
+  },
+  role: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+    defaultValue: 'broker'
+  },
+  otp_code: {
+    type: DataTypes.STRING(10),
+    allowNull: true
+  },
+  otp_expiry: {
+    type: DataTypes.DATE,
+    allowNull: true
   }
 }, {
-  tableName: 'register',
-  timestamps: false
+  tableName: 'brokers',
+  timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: 'updated_at'
 });
 
-module.exports = User;
+module.exports = Broker;
