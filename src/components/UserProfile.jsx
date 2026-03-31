@@ -43,7 +43,13 @@ const UserProfile = ({ user, onClose, onUpdate }) => {
   }, [user]);
 
   const handleEditChange = (e) => {
-    setProfileData({ ...profileData, [e.target.name]: e.target.value });
+    let { name, value } = e.target;
+    if (name === 'moblie_no') {
+      value = value.replace(/\D/g, '').slice(0, 10);
+    } else if (name === 'pincode') {
+      value = value.replace(/\D/g, '').slice(0, 6);
+    }
+    setProfileData({ ...profileData, [name]: value });
   };
 
   const handleSaveProfile = async () => {
@@ -271,6 +277,9 @@ const UserProfile = ({ user, onClose, onUpdate }) => {
                       value={profileData.moblie_no} 
                       onChange={handleEditChange}
                       className="animated-input"
+                      maxLength="10"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                     />
                   </div>
                   <div className="form-group">
@@ -291,6 +300,9 @@ const UserProfile = ({ user, onClose, onUpdate }) => {
                       value={profileData.pincode} 
                       onChange={handleEditChange}
                       className="animated-input"
+                      maxLength="6"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                     />
                   </div>
                   <div className="button-group">
@@ -322,10 +334,13 @@ const UserProfile = ({ user, onClose, onUpdate }) => {
               {otpMessage && <p className="error-text">{otpMessage}</p>}
               <input 
                 type="text" 
-                placeholder="Enter OTP" 
+                placeholder="Enter 6-digit OTP" 
                 value={otpCode} 
-                onChange={(e) => setOtpCode(e.target.value)}
+                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 className="animated-input"
+                maxLength="6"
+                inputMode="numeric"
+                pattern="[0-9]*"
               />
               <div className="otp-actions">
                 <button onClick={verifyOtp} className="verify-btn">Verify OTP</button>
@@ -365,6 +380,12 @@ const SellingRequestForm = ({ user, onSuccess }) => {
 
   const handleChange = (e) => {
     setFormData({...formData, [e.target.name]: e.target.value});
+  };
+
+  const handleKeyDown = (e) => {
+    if (['e', 'E', '+', '-'].includes(e.key)) {
+      e.preventDefault();
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -414,6 +435,8 @@ const SellingRequestForm = ({ user, onSuccess }) => {
             name="stock_per_mound" 
             value={formData.stock_per_mound} 
             onChange={handleChange} 
+            onKeyDown={handleKeyDown}
+            min="0"
             required
             className="animated-input"
           />
@@ -438,6 +461,8 @@ const SellingRequestForm = ({ user, onSuccess }) => {
           name="customer_price" 
           value={formData.customer_price} 
           onChange={handleChange} 
+          onKeyDown={handleKeyDown}
+          min="0"
           required
           className="animated-input"
         />

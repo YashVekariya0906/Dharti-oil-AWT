@@ -61,6 +61,12 @@ const AdminGlobalPrice = () => {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (['e', 'E', '+', '-'].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div className="admin-global-price-container fade-in">
       <h2>Manage Global Selling Price (Our Price)</h2>
@@ -74,6 +80,8 @@ const AdminGlobalPrice = () => {
             step="0.01"
             value={currentPrice} 
             onChange={(e) => setCurrentPrice(e.target.value)} 
+            onKeyDown={handleKeyDown}
+            min="0"
             required
             className="animated-input"
           />

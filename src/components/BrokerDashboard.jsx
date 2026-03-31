@@ -61,6 +61,12 @@ const BrokerDashboard = ({ user, onLogout }) => {
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (['e', 'E', '+', '-'].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
+
   const handleReportSubmit = async (requestId) => {
     if (!reportData.delivered_quantity) {
       setMessage('Please fill delivered quantity before submitting report');
@@ -208,6 +214,8 @@ const BrokerDashboard = ({ user, onLogout }) => {
                             step="0.01"
                             value={reportData.delivered_quantity}
                             onChange={(e) => setReportData({ ...reportData, delivered_quantity: e.target.value })}
+                            onKeyDown={handleKeyDown}
+                            min="0"
                             className="animated-input"
                           />
                         </div>

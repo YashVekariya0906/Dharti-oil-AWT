@@ -30,7 +30,10 @@ const AdminBrokerForm = () => {
   };
 
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    let { name, value } = e.target;
+    if (name === 'moblie_no') value = value.replace(/\D/g, '').slice(0, 10);
+    else if (name === 'pincode') value = value.replace(/\D/g, '').slice(0, 6);
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e) => {
@@ -208,7 +211,7 @@ const AdminBrokerForm = () => {
           </div>
           <div className="form-group">
             <label>Mobile Number</label>
-            <input type="text" name="moblie_no" value={formData.moblie_no} onChange={handleInputChange} required className="animated-input" />
+            <input type="text" name="moblie_no" value={formData.moblie_no} onChange={handleInputChange} required className="animated-input" minLength="10" maxLength="10" inputMode="numeric" pattern="[0-9]*" />
           </div>
           <div className="form-group">
             <label>Password</label>
@@ -216,7 +219,7 @@ const AdminBrokerForm = () => {
           </div>
           <div className="form-group">
             <label>Pincode</label>
-            <input type="text" name="pincode" value={formData.pincode} onChange={handleInputChange} required className="animated-input" />
+            <input type="text" name="pincode" value={formData.pincode} onChange={handleInputChange} required className="animated-input" minLength="6" maxLength="6" inputMode="numeric" pattern="[0-9]*" />
           </div>
           <div className="form-group">
             <label>Commission (%)</label>
@@ -271,7 +274,7 @@ const AdminBrokerForm = () => {
           <div className="form-grid" style={{ alignItems: 'flex-end' }}>
             <div className="form-group">
               <label>OTP Code</label>
-              <input type="text" value={otpCode} onChange={(e) => setOtpCode(e.target.value)} className="animated-input" />
+              <input type="text" value={otpCode} onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))} className="animated-input" maxLength="6" inputMode="numeric" pattern="[0-9]*" />
             </div>
             <div className="form-group" style={{ marginTop: '0' }}>
               <button onClick={verifyOtp} className="save-btn" style={{ width: '100%' }}>Verify OTP</button>
