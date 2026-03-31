@@ -154,6 +154,7 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
+
 // API endpoint to add a new product
 app.post('/api/products', productUpload.single('product_image'), async (req, res) => {
   try {
