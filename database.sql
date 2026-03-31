@@ -41,9 +41,9 @@ CREATE TABLE IF NOT EXISTS products (
   description TEXT
 );
 
--- Insert initial dummy products
-INSERT INTO products (name, price, image_url, description) VALUES
-('Groundnut Oil 1L', 250.00, NULL, '100% pure cold-pressed groundnut oil.'),
-('Mustard Oil 1L', 180.00, NULL, 'Organic mustard oil for cooking.'),
-('Sesame Oil 500ml', 300.00, NULL, 'Premium quality sesame oil.'),
-('Coconut Oil 500ml', 220.00, NULL, 'Cold-pressed coconut oil for hair and body.');
+-- -- Insert initial dummy products
+-- INSERT INTO products (name, price, image_url, description) VALUES
+-- ('Groundnut Oil 1L', 250.00, NULL, '100% pure cold-pressed groundnut oil.'),
+-- ('Mustard Oil 1L', 180.00, NULL, 'Organic mustard oil for cooking.'),
+-- ('Sesame Oil 500ml', 300.00, NULL, 'Premium quality sesame oil.'),
+-- ('Coconut Oil 500ml', 220.00, NULL, 'Cold-pressed coconut oil for hair and body.');

@@ -26,9 +26,9 @@ export default function AdminContactInquiries() {
 
   return (
     <div style={{ background: 'white', padding: '30px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
-      <h2 style={{marginTop:0}}>User Contact Inquiries</h2>
+      <h2 style={{ marginTop: 0 }}>User Contact Inquiries</h2>
       <p style={{ color: '#666', marginBottom: '20px' }}>Messages submitted by users via the Contact Us page.</p>
-      
+
       {inquiries.length === 0 ? (
         <div style={{ padding: '20px', background: '#f8f9fa', borderRadius: '8px', textAlign: 'center', color: '#666' }}>
           No inquiries found.
@@ -45,10 +45,11 @@ export default function AdminContactInquiries() {
                   {new Date(inquiry.createdAt || inquiry.created_at).toLocaleString()}
                 </span>
               </div>
-              <div style={{ display: 'flex', gap: '20px', marginBottom: '15px', fontSize: '14px', color: '#555' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', marginBottom: '15px', fontSize: '14px', color: '#555' }}>
                 <div><strong>Email:</strong> {inquiry.email}</div>
                 <div><strong>Phone:</strong> {inquiry.phone}</div>
-                <div><strong>User ID:</strong> {inquiry.user_id}</div>
+                <div><strong>User ID:</strong> {inquiry.user ? inquiry.user.user_id : 'N/A'}</div>
+                <div><strong>User Name:</strong> {inquiry.user ? inquiry.user.username : 'N/A'}</div>
               </div>
               <div style={{ background: 'white', padding: '15px', borderRadius: '4px', borderLeft: '4px solid #4CAF50', fontSize: '15px', color: '#444', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
                 {inquiry.message || <em style={{ color: '#aaa' }}>No message body...</em>}

@@ -23,6 +23,10 @@ User.hasMany(SellingRequest, { foreignKey: 'user_id', as: 'selling_requests' });
 SellingRequest.belongsTo(User, { foreignKey: 'broker_id', as: 'broker' });
 User.hasMany(SellingRequest, { foreignKey: 'broker_id', as: 'broker_requests' });
 
+// ContactInquiry belongs to User
+ContactInquiry.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+User.hasMany(ContactInquiry, { foreignKey: 'user_id', as: 'contact_inquiries' });
+
 // Sync database (create tables automatically)
 const syncDatabase = async () => {
   try {
