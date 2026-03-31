@@ -6,6 +6,7 @@ const AdminSellingRequests = () => {
   const [loading, setLoading] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [brokersByPincode, setBrokersByPincode] = useState([]);
+  const [otherActiveBrokers, setOtherActiveBrokers] = useState([]);
   const [selectedBroker, setSelectedBroker] = useState(null);
   const [message, setMessage] = useState('');
   const [activeTab, setActiveTab] = useState('pending');
@@ -27,14 +28,22 @@ const AdminSellingRequests = () => {
     }
   };
 
-  const fetchBrokersByPincode = async (pincode) => {
+  const fetchActiveBrokers = async (pincode) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/brokers/by-pincode/${pincode}`);
+      const res = await fetch('http://localhost:5000/api/admin/brokers');
       const data = await res.json();
-      setBrokersByPincode(data);
+      // Filter only Active brokers
+      const activeBrokers = data.filter(b => b.status === 'Active');
+      
+      const matching = activeBrokers.filter(b => b.pincode === pincode);
+      const others = activeBrokers.filter(b => b.pincode !== pincode);
+      
+      setBrokersByPincode(matching);
+      setOtherActiveBrokers(others);
     } catch (error) {
       console.error('Failed to fetch brokers:', error);
       setBrokersByPincode([]);
+      setOtherActiveBrokers([]);
     }
   };
 
@@ -42,9 +51,10 @@ const AdminSellingRequests = () => {
     setSelectedRequest(request);
     setSelectedBroker(null);
     setBrokersByPincode([]);
+    setOtherActiveBrokers([]);
     setMessage('');
-    // Fetch brokers for this pincode
-    fetchBrokersByPincode(request.user.pincode);
+    // Fetch all active brokers and separate by pincode match
+    fetchActiveBrokers(request.user.pincode);
   };
 
   const handleAssignBroker = async (brokerParam) => {
@@ -227,7 +237,7 @@ const AdminSellingRequests = () => {
             </div>
           ) : (
             <div className="brokers-list">
-              <h4>Available Brokers:</h4>
+              <h4>Brokers in Pincode {selectedRequest.user?.pincode}:</h4>
               {brokersByPincode.map((broker) => (
                 <div 
                   key={broker.user_id || broker.broker_id} 
@@ -248,8 +258,38 @@ const AdminSellingRequests = () => {
                   <div className="broker-details">
                     <h4>{broker.username || broker.name}</h4>
                     <p>📧 {broker.emali || broker.email}</p>
-                    <p>📱 {broker.moblie_no || broker.mobile_no}</p>
-                    <p>🏷️ Status: {broker.status || 'Active'}</p>
+                    <p>📱 {broker.moblie_no || broker.mobile_no} | 📮 {broker.pincode}</p>
+                    <p>💼 Commission: {broker.commission_percent}%</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {otherActiveBrokers.length > 0 && (
+            <div className="brokers-list" style={{ marginTop: '20px' }}>
+              <h4>Other Active Brokers (Alternative Options):</h4>
+              {otherActiveBrokers.map((broker) => (
+                <div 
+                  key={broker.user_id || broker.broker_id} 
+                  className={`broker-option ${(selectedBroker?.user_id || selectedBroker?.broker_id) === (broker.user_id || broker.broker_id) ? 'selected' : ''}`}
+                  onClick={() => {
+                    setSelectedBroker(broker);
+                    setMessage('');
+                  }}
+                >
+                  <div className="broker-radio">
+                    <input 
+                      type="radio" 
+                      name="broker"
+                      checked={(selectedBroker?.user_id || selectedBroker?.broker_id) === (broker.user_id || broker.broker_id)}
+                      readOnly
+                    />
+                  </div>
+                  <div className="broker-details">
+                    <h4>{broker.username || broker.name}</h4>
+                    <p>📧 {broker.emali || broker.email}</p>
+                    <p>📱 {broker.moblie_no || broker.mobile_no} | 📮 {broker.pincode}</p>
                     <p>💼 Commission: {broker.commission_percent}%</p>
                   </div>
                 </div>
