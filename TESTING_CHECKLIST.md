@@ -175,9 +175,9 @@
 ## AdminSellingRequests Component
 ### Tab Navigation
 - [ ] Three tabs visible with counts:
-  - [ ] ⏳ Pending (count of status='Pending')
-  - [ ] ✅ Accepted (count of status='Accepted')
-  - [ ] 📅 Scheduled (count of status='Scheduled')
+  - [ ]  Pending (count of status='Pending')
+  - [ ]  Accepted (count of status='Accepted')
+  - [ ]  Scheduled (count of status='Scheduled')
 - [ ] Tab switching works smoothly
 - [ ] Counts update after actions
 - [ ] Active tab highlighted
@@ -206,8 +206,8 @@
 #### Opening Panel
 - [ ] Click "Select" on any Pending request
 - [ ] Right-side panel slides up from bottom with animation
-- [ ] Panel header shows: "🤝 Assign Broker to [username]"
-- [ ] Panel shows: "📮 Searching brokers for pincode: [pincode]"
+- [ ] Panel header shows: " Assign Broker to [username]"
+- [ ] Panel shows: " Searching brokers for pincode: [pincode]"
 
 #### Broker Filtering
 - [ ] `GET /api/brokers/by-pincode/:pincode` called
@@ -297,7 +297,7 @@
 ### Flow 1: Complete Broker Journey
 - [ ] Admin creates broker in AdminDashboard
 - [ ] Broker receives email with credentials (or gets them from admin)
-- [ ] Broker visits app, clicks "🔑 Broker Portal"
+- [ ] Broker visits app, clicks " Broker Portal"
 - [ ] Broker logs in with email + password
 - [ ] Redirected to BrokerDashboard
 - [ ] Admin creates/assigns a selling request to this broker
@@ -310,7 +310,7 @@
 
 ### Flow 2: Complete User Selling Request Journey
 - [ ] User registers and logs in
-- [ ] User clicks "👤 Profile" (if not visible, check navbar)
+- [ ] User clicks " Profile" (if not visible, check navbar)
 - [ ] UserProfile modal opens
 - [ ] User views current profile info
 - [ ] User switches to "Selling Option" tab

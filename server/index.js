@@ -77,11 +77,11 @@ if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
       pass: process.env.EMAIL_PASS
     }
   });
-  console.log('✅ Real Gmail transporter configured for production use');
+  console.log(' Real Gmail transporter configured for production use');
 } else {
-  // console.error('❌ ERROR: Real Gmail credentials not configured in .env file!');
+  // console.error(' ERROR: Real Gmail credentials not configured in .env file!');
   // console.error('Please set EMAIL_USER and EMAIL_PASS in your .env file');
-  console.log('⚠️ Email functionality disabled - using test mode');
+  console.log(' Email functionality disabled - using test mode');
   // Email functionality will be disabled
 }
 
@@ -118,7 +118,7 @@ async function ensureSellingRequestBrokerFk() {
       ON DELETE SET NULL
       ON UPDATE CASCADE
     `);
-    console.log('✅ selling_requests.broker_id now references register.user_id');
+    console.log(' selling_requests.broker_id now references register.user_id');
   } catch (error) {
     console.warn('Could not create FK to register.user_id:', error.message);
   }
@@ -480,10 +480,10 @@ app.post('/api/register', async (req, res) => {
         text: `Welcome to Dharti Oil! Your verification code is: ${otpCode}. This code will expire in 10 minutes.`
       });
 
-      console.log(`✅ [EMAIL SENT] OTP sent successfully to ${emali}`);
+      console.log(` [EMAIL SENT] OTP sent successfully to ${emali}`);
 
     } catch (emailError) {
-      console.error('❌ [EMAIL FAILED] Could not send OTP to:', emali, emailError.message);
+      console.error(' [EMAIL FAILED] Could not send OTP to:', emali, emailError.message);
       // Delete the user if email fails
       await User.destroy({ where: { user_id: user.user_id } });
       return res.status(500).json({ message: 'Failed to send verification email. Please try again.' });
@@ -558,7 +558,7 @@ app.post('/api/resend-otp', async (req, res) => {
         text: `Your new verification code is: ${otpCode}. This code will expire in 10 minutes.`
       });
 
-      console.log(`✅ [OTP RESENT] New OTP sent to ${emali}`);
+      console.log(` [OTP RESENT] New OTP sent to ${emali}`);
 
       res.status(200).json({
         message: 'New verification code sent to your email.',
@@ -566,7 +566,7 @@ app.post('/api/resend-otp', async (req, res) => {
       });
 
     } catch (emailError) {
-      console.error('❌ [EMAIL FAILED] Could not resend OTP to:', emali, emailError.message);
+      console.error(' [EMAIL FAILED] Could not resend OTP to:', emali, emailError.message);
       return res.status(500).json({ message: 'Failed to send email. Please try again.' });
     }
 
@@ -610,7 +610,7 @@ app.post('/api/verify-otp', async (req, res) => {
       where: { user_id: user.user_id }
     });
 
-    console.log(`✅ [OTP VERIFIED] User ${emali} successfully verified`);
+    console.log(` [OTP VERIFIED] User ${emali} successfully verified`);
 
     res.status(200).json({
       message: 'Email verified successfully! You can now login.',
@@ -677,7 +677,7 @@ app.post('/api/login', async (req, res) => {
       status: user.status || 'Active'
     };
 
-    console.log(`✅ [LOGIN SUCCESS] User ${emali} logged in successfully`);
+    console.log(` [LOGIN SUCCESS] User ${emali} logged in successfully`);
 
     res.status(200).json({
       message: 'Login successful!',
@@ -723,14 +723,14 @@ app.post('/api/admin/brokers', async (req, res) => {
 
     // Validate required fields
     if (!username || !moblie_no || !address || !password || !emali || !pincode) {
-      console.log('❌ Missing required fields:', { username, moblie_no, address, password, emali, pincode });
+      console.log(' Missing required fields:', { username, moblie_no, address, password, emali, pincode });
       return res.status(400).json({ message: 'All fields are required' });
     }
 
     // Check if broker exists
     const existingBroker = await User.findOne({ where: { emali, role: 'broker' } });
     if (existingBroker) {
-      console.log(`❌ Broker with email ${emali} already exists`);
+      console.log(` Broker with email ${emali} already exists`);
       return res.status(409).json({ message: 'Broker with this email already exists!' });
     }
 
@@ -757,7 +757,7 @@ app.post('/api/admin/brokers', async (req, res) => {
       otp_expiry: otpExpiry
     });
 
-    console.log('✅ Broker created pending verification:', broker.toJSON());
+    console.log(' Broker created pending verification:', broker.toJSON());
 
     // Send OTP email
     try {
@@ -780,7 +780,7 @@ app.post('/api/admin/brokers', async (req, res) => {
       status: broker.status
     });
   } catch (error) {
-    console.error('❌ Error creating broker:', error);
+    console.error(' Error creating broker:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -805,7 +805,7 @@ app.delete('/api/admin/brokers/:id', async (req, res) => {
     await User.destroy({ where: { user_id: id } });
     res.json({ message: 'Broker deleted successfully' });
   } catch (error) {
-    console.error('❌ Error deleting broker:', error);
+    console.error(' Error deleting broker:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -835,7 +835,7 @@ app.post('/api/admin/brokers/verify-otp', async (req, res) => {
     const updatedBroker = await User.findByPk(broker.user_id);
     res.status(200).json({ message: 'Broker verified and activated', broker: updatedBroker });
   } catch (error) {
-    console.error('❌ Error verifying broker OTP:', error);
+    console.error(' Error verifying broker OTP:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -873,7 +873,7 @@ app.put('/api/admin/brokers/:id', async (req, res) => {
     const updatedBroker = await User.findByPk(id);
     res.status(200).json({ message: 'Broker updated successfully', broker: updatedBroker });
   } catch (error) {
-    console.error('❌ Error updating broker:', error);
+    console.error(' Error updating broker:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -896,7 +896,7 @@ app.post('/api/admin/global-price', async (req, res) => {
     const { current_price } = req.body;
     
     if (!current_price && current_price !== 0) {
-      console.log('❌ Current price is required');
+      console.log(' Current price is required');
       return res.status(400).json({ message: 'Current price is required' });
     }
 
@@ -905,16 +905,16 @@ app.post('/api/admin/global-price', async (req, res) => {
     let globalPrice = await GlobalPrice.findOne();
     if (globalPrice) {
       await GlobalPrice.update({ current_price }, { where: { id: globalPrice.id } });
-      console.log('✅ Global price updated');
+      console.log(' Global price updated');
     } else {
       globalPrice = await GlobalPrice.create({ current_price });
-      console.log('✅ Global price created');
+      console.log(' Global price created');
     }
 
     const updated = await GlobalPrice.findOne();
     res.json({ message: 'Global Price updated successfully!', globalPrice: updated });
   } catch (error) {
-    console.error('❌ Error updating global price:', error);
+    console.error(' Error updating global price:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -1144,7 +1144,7 @@ app.post('/api/blogs', blogUpload.single('banner_image'), async (req, res) => {
       status: status || 'published'
     });
 
-    console.log(`✅ [BLOG CREATED] "${title}" created by admin`);
+    console.log(` [BLOG CREATED] "${title}" created by admin`);
 
     res.status(201).json({
       message: 'Blog post created successfully!',
@@ -1190,7 +1190,7 @@ app.put('/api/blogs/:id', blogUpload.single('banner_image'), async (req, res) =>
       where: { id: id }
     });
 
-    console.log(`✅ [BLOG UPDATED] "${title || blog.title}" updated by admin`);
+    console.log(` [BLOG UPDATED] "${title || blog.title}" updated by admin`);
 
     res.status(200).json({
       message: 'Blog post updated successfully!'
@@ -1222,7 +1222,7 @@ app.delete('/api/blogs/:id', async (req, res) => {
 
     await Blog.destroy({ where: { id: id } });
 
-    console.log(`✅ [BLOG DELETED] "${blog.title}" deleted by admin`);
+    console.log(` [BLOG DELETED] "${blog.title}" deleted by admin`);
 
     res.status(200).json({
       message: 'Blog post deleted successfully!'
@@ -1317,7 +1317,8 @@ app.post('/api/contact-inquiry', async (req, res) => {
 app.get('/api/admin/contact-inquiries', async (req, res) => {
   try {
     const inquiries = await ContactInquiry.findAll({
-      order: [['created_at', 'DESC']]
+      order: [['created_at', 'DESC']],
+      include: [{ model: User, as: 'user', attributes: ['user_id', 'username'] }]
     });
     res.json(inquiries);
   } catch (error) {
@@ -1433,7 +1434,7 @@ app.put('/api/users/profile', async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('❌ Error updating profile:', error);
+    console.error(' Error updating profile:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -1475,7 +1476,7 @@ app.post('/api/users/send-otp', async (req, res) => {
 
     res.status(200).json({ message: 'OTP sent successfully', email });
   } catch (error) {
-    console.error('❌ Error sending OTP:', error);
+    console.error(' Error sending OTP:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -1508,11 +1509,11 @@ app.post('/api/users/verify-otp', async (req, res) => {
       otp_expiry: null
     }, { where: { user_id } });
 
-    console.log(`✅ [OTP VERIFIED] User ${user_id} email changed to ${email}`);
+    console.log(` [OTP VERIFIED] User ${user_id} email changed to ${email}`);
 
     res.status(200).json({ message: 'Email verified and updated successfully!' });
   } catch (error) {
-    console.error('❌ Error verifying OTP:', error);
+    console.error(' Error verifying OTP:', error);
     res.status(500).json({ error: error.message });
   }
 });
