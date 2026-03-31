@@ -56,7 +56,9 @@ export default function ContactUs({ user, onRequireLogin }) {
   }, []);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    let { name, value } = e.target;
+    if (name === 'phone') value = value.replace(/\D/g, '').slice(0, 10);
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e) => {
@@ -189,7 +191,7 @@ export default function ContactUs({ user, onRequireLogin }) {
             <div className="form-row">
               <div className="form-group">
                 <label>Your Phone (required)</label>
-                <input type="tel" name="phone" placeholder="Your phone" value={formData.phone} onChange={handleChange} required />
+                <input type="tel" name="phone" placeholder="Your phone" value={formData.phone} onChange={handleChange} minLength="10" maxLength="10" inputMode="numeric" pattern="[0-9]*" required />
               </div>
               <div className="form-group">
                 <label>Your Email (required)</label>

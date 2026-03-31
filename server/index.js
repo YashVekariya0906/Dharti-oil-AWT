@@ -154,6 +154,7 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
+
 // API endpoint to add a new product
 app.post('/api/products', productUpload.single('product_image'), async (req, res) => {
   try {
@@ -249,15 +250,15 @@ app.post('/api/navbar/delete', async (req, res) => {
     const updates = {};
 
     for (const field of fields) {
-       const allowedFields = ['nav_logo_path', 'I1_path', 'I2_path', 'I3_path', 'I4_path', 'I5_path', 'intro_path'];
-       if (allowedFields.includes(field)) {
-          updates[field] = null;
-          if (navbar[field]) {
-             const filename = navbar[field].split('/').pop();
-             const filepath = path.join(__dirname, 'uploads', filename);
-             if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
-          }
-       }
+      const allowedFields = ['nav_logo_path', 'I1_path', 'I2_path', 'I3_path', 'I4_path', 'I5_path', 'intro_path'];
+      if (allowedFields.includes(field)) {
+        updates[field] = null;
+        if (navbar[field]) {
+          const filename = navbar[field].split('/').pop();
+          const filepath = path.join(__dirname, 'uploads', filename);
+          if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
+        }
+      }
     }
 
     if (Object.keys(updates).length > 0) {
@@ -276,15 +277,15 @@ app.post('/api/navbar/update', upload.fields(navbarFields), async (req, res) => 
     const existingNavbar = await Navbar.findOne();
 
     const constructPath = (field) => {
-       if (req.files && req.files[field]) {
-          if (existingNavbar && existingNavbar[field]) {
-             const filename = existingNavbar[field].split('/').pop();
-             const filepath = path.join(__dirname, 'uploads', filename);
-             if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
-          }
-          return 'http://localhost:5000/uploads/' + req.files[field][0].filename;
-       }
-       return req.body[field] || null;
+      if (req.files && req.files[field]) {
+        if (existingNavbar && existingNavbar[field]) {
+          const filename = existingNavbar[field].split('/').pop();
+          const filepath = path.join(__dirname, 'uploads', filename);
+          if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
+        }
+        return 'http://localhost:5000/uploads/' + req.files[field][0].filename;
+      }
+      return req.body[field] || null;
     };
 
     const nav_logo_path = constructPath('nav_logo_path');
@@ -817,8 +818,8 @@ app.post('/api/admin/brokers/verify-otp', async (req, res) => {
       return res.status(400).json({ message: 'Email and OTP are required' });
     }
 
-    const broker = await User.findOne({ 
-      where: { 
+    const broker = await User.findOne({
+      where: {
         emali,
         role: 'broker',
         otp_code,
@@ -894,7 +895,7 @@ app.get('/api/admin/global-price', async (req, res) => {
 app.post('/api/admin/global-price', async (req, res) => {
   try {
     const { current_price } = req.body;
-    
+
     if (!current_price && current_price !== 0) {
       console.log(' Current price is required');
       return res.status(400).json({ message: 'Current price is required' });
@@ -925,7 +926,7 @@ app.post('/api/users/selling-requests', async (req, res) => {
     const { user_id, stock_per_mound, customer_price } = req.body;
     const globalPrice = await GlobalPrice.findOne();
     const our_price = globalPrice ? globalPrice.current_price : 0;
-    
+
     const request = await SellingRequest.create({
       user_id, stock_per_mound, our_price, customer_price
     });
@@ -954,7 +955,7 @@ app.put('/api/admin/selling-requests/:id/accept', async (req, res) => {
   try {
     const { id } = req.params;
     const { broker_id } = req.body;
-    
+
     await SellingRequest.update({ broker_id, status: 'Accepted' }, { where: { request_id: id } });
     res.json({ message: 'Selling request accepted and broker assigned.' });
   } catch (error) {
@@ -980,7 +981,7 @@ app.put('/api/brokers/selling-requests/:id/schedule', async (req, res) => {
   try {
     const { id } = req.params;
     const { visit_day, visit_time } = req.body;
-    
+
     await SellingRequest.update({ visit_day, visit_time, status: 'Scheduled' }, { where: { request_id: id } });
     res.json({ message: 'Visit scheduled successfully.' });
   } catch (error) {
@@ -1026,14 +1027,14 @@ app.put('/api/users/:id/profile', async (req, res) => {
   try {
     const { id } = req.params;
     const { username, moblie_no, address, pincode, new_emali } = req.body;
-    
+
     const user = await User.findByPk(id);
     if (!user) return res.status(404).json({ message: 'User not found' });
-    
+
     if (new_emali && new_emali !== user.emali) {
       const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
       console.log(`\n[OTP GENERATED] Code for email change ${new_emali}: ${otpCode}\n`);
-      
+
       await User.update({
         username: username || user.username,
         moblie_no: moblie_no || user.moblie_no,
@@ -1044,13 +1045,13 @@ app.put('/api/users/:id/profile', async (req, res) => {
       }, { where: { user_id: id } });
 
       try {
-        if(transporter){
-           await transporter.sendMail({
-              from: `"Dharti Oil App" <${process.env.EMAIL_USER}>`,
-              to: new_emali,
-              subject: 'Verify Your New Email - Dharti Oil',
-              html: `<p>Your verification code is: ${otpCode}</p>`
-            });
+        if (transporter) {
+          await transporter.sendMail({
+            from: `"Dharti Oil App" <${process.env.EMAIL_USER}>`,
+            to: new_emali,
+            subject: 'Verify Your New Email - Dharti Oil',
+            html: `<p>Your verification code is: ${otpCode}</p>`
+          });
         }
       } catch (e) {
         console.error('Failed to send email:', e);
@@ -1074,10 +1075,10 @@ app.post('/api/users/:id/verify-email', async (req, res) => {
   try {
     const { id } = req.params;
     const { new_emali, otp_code } = req.body;
-    
+
     const user = await User.findOne({ where: { user_id: id, otp_code, otp_expiry: { [require('sequelize').Op.gte]: new Date() } } });
     if (!user) return res.status(400).json({ message: 'Invalid or expired OTP.' });
-    
+
     await User.update({ emali: new_emali, otp_code: null, otp_expiry: null }, { where: { user_id: id } });
     res.status(200).json({ message: 'Email updated successfully!' });
   } catch (error) {
@@ -1264,9 +1265,9 @@ app.get('/api/contact-details', async (req, res) => {
 app.post('/api/contact-details/update', contactUpload.single('banner_image'), async (req, res) => {
   try {
     const { address, email, mobile, facebook_link, instagram_link, youtube_link, existing_image } = req.body;
-    
+
     const banner_image = req.file ? ('http://localhost:5000/uploads/' + req.file.filename) : (existing_image || null);
-    
+
     const existingContact = await ContactDetails.findOne();
     if (existingContact) {
       // Clean up old image if a new one was uploaded
@@ -1275,7 +1276,7 @@ app.post('/api/contact-details/update', contactUpload.single('banner_image'), as
         const oldFilepath = path.join(__dirname, 'uploads', oldFilename);
         if (fs.existsSync(oldFilepath)) fs.unlinkSync(oldFilepath);
       }
-      
+
       await ContactDetails.update({
         address, email, mobile, facebook_link, instagram_link, youtube_link, banner_image
       }, {
@@ -1297,15 +1298,15 @@ app.post('/api/contact-details/update', contactUpload.single('banner_image'), as
 app.post('/api/contact-inquiry', async (req, res) => {
   try {
     const { first_name, last_name, phone, email, message, user_id } = req.body;
-    
+
     if (!first_name || !last_name || !phone || !email || !user_id) {
       return res.status(400).json({ message: 'All required fields must be provided' });
     }
-    
+
     const inquiry = await ContactInquiry.create({
       first_name, last_name, phone, email, message, user_id
     });
-    
+
     res.status(201).json({ message: 'Inquiry submitted successfully', inquiry_id: inquiry.id });
   } catch (error) {
     console.error('Error submitting inquiry:', error);
@@ -1490,12 +1491,12 @@ app.post('/api/users/verify-otp', async (req, res) => {
       return res.status(400).json({ message: 'Email, OTP, and user ID are required' });
     }
 
-    const user = await User.findOne({ 
-      where: { 
-        user_id, 
-        otp_code, 
-        otp_expiry: { [require('sequelize').Op.gte]: new Date() } 
-      } 
+    const user = await User.findOne({
+      where: {
+        user_id,
+        otp_code,
+        otp_expiry: { [require('sequelize').Op.gte]: new Date() }
+      }
     });
 
     if (!user) {

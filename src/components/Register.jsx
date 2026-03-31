@@ -99,7 +99,7 @@ const Register = ({ onBack, onLogin, onSwitchToLogin }) => {
             </div>
             <div className="form-group">
               <label>Mobile Number</label>
-              <input type="text" name="moblie_no" value={formData.moblie_no} onChange={handleChange} minLength="10" maxLength="10" placeholder="10-digit number" required />
+              <input type="text" name="moblie_no" value={formData.moblie_no} onChange={handleChange} minLength="10" maxLength="10" placeholder="10-digit number" inputMode="numeric" pattern="[0-9]*" required />
             </div>
             <div className="form-group">
               <label>Email ID</label>
@@ -111,7 +111,7 @@ const Register = ({ onBack, onLogin, onSwitchToLogin }) => {
             </div>
             <div className="form-group">
               <label>Pincode</label>
-              <input type="text" name="pincode" value={formData.pincode} onChange={handleChange} minLength="6" maxLength="6" placeholder="6-digit code" required />
+              <input type="text" name="pincode" value={formData.pincode} onChange={handleChange} minLength="6" maxLength="6" placeholder="6-digit code" inputMode="numeric" pattern="[0-9]*" required />
             </div>
             <div className="form-group">
               <label>Password</label>
@@ -146,6 +146,8 @@ const Register = ({ onBack, onLogin, onSwitchToLogin }) => {
                 value={otpCode} 
                 onChange={handleOtpChange} 
                 required 
+                inputMode="numeric"
+                pattern="[0-9]*"
                 style={{ textAlign: 'center', letterSpacing: '4px', fontSize: '1.2em' }}
               />
             </div>
