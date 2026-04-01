@@ -8,7 +8,7 @@ const BrokerDashboard = ({ user, onLogout }) => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [scheduleData, setScheduleData] = useState({ visit_date: '', visit_time: '' });
   const [reportModeRequestId, setReportModeRequestId] = useState(null);
-  const [reportData, setReportData] = useState({ delivered_quantity: '', broker_comments: '' });
+  const [reportData, setReportData] = useState({ delivered_quantity: '', broker_comments: '', final_price: '', sample_photos: [] });
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -67,26 +67,48 @@ const BrokerDashboard = ({ user, onLogout }) => {
     }
   };
 
+  const handleReached = async (requestId) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/brokers/selling-requests/${requestId}/reached`, {
+        method: 'PUT',
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMessage('Marked as Reached successfully!');
+        fetchAssignedRequests();
+      } else {
+        setMessage(data.message || 'Failed to mark as reached');
+      }
+    } catch (error) {
+      setMessage('Error: ' + error.message);
+    }
+  };
+
   const handleReportSubmit = async (requestId) => {
-    if (!reportData.delivered_quantity) {
-      setMessage('Please fill delivered quantity before submitting report');
+    if (!reportData.delivered_quantity || !reportData.final_price) {
+      setMessage('Please fill in required fields (Delivered Quantity & Final Price)');
       return;
     }
 
     try {
+      const formData = new FormData();
+      formData.append('delivered_quantity', parseFloat(reportData.delivered_quantity));
+      formData.append('broker_comments', reportData.broker_comments);
+      formData.append('final_price', parseFloat(reportData.final_price));
+      
+      Array.from(reportData.sample_photos).forEach(file => {
+        formData.append('sample_photos', file);
+      });
+
       const res = await fetch(`http://localhost:5000/api/brokers/selling-requests/${requestId}/report`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          delivered_quantity: parseFloat(reportData.delivered_quantity),
-          broker_comments: reportData.broker_comments
-        })
+        body: formData
       });
 
       const data = await res.json();
       if (res.ok) {
         setMessage('Visit report submitted successfully!');
-        setReportData({ delivered_quantity: '', broker_comments: '' });
+        setReportData({ delivered_quantity: '', broker_comments: '', final_price: '', sample_photos: [] });
         setReportModeRequestId(null);
         fetchAssignedRequests();
       } else {
@@ -111,7 +133,13 @@ const BrokerDashboard = ({ user, onLogout }) => {
           className={`tab-btn ${activeTab === 'requests' ? 'active' : ''}`}
           onClick={() => setActiveTab('requests')}
         >
-          📋 My Assignments
+          📋 New Requests
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'completed' ? 'active' : ''}`}
+          onClick={() => setActiveTab('completed')}
+        >
+          ✅ Completed
         </button>
         <button 
           className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`}
@@ -122,18 +150,18 @@ const BrokerDashboard = ({ user, onLogout }) => {
       </div>
 
       <div className="broker-dashboard-content fade-in">
-        {activeTab === 'requests' && (
+        {(activeTab === 'requests' || activeTab === 'completed') && (
           <div className="requests-section">
-            <h2>Assigned Selling Requests</h2>
+            <h2>{activeTab === 'requests' ? 'Assigned Selling Requests' : 'Completed Requests'}</h2>
             {message && <div className={`msg ${message.includes('success') ? 'success' : 'error'}`}>{message}</div>}
             
             {loading ? (
               <p className="loading">Loading...</p>
-            ) : requests.length === 0 ? (
-              <p className="no-data">No assigned requests yet</p>
+            ) : requests.filter(r => activeTab === 'completed' ? r.status === 'Completed' : r.status !== 'Completed').length === 0 ? (
+              <p className="no-data">No {activeTab === 'requests' ? 'assigned' : 'completed'} requests yet</p>
             ) : (
               <div className="requests-list">
-                {requests.map((req) => (
+                {requests.filter(r => activeTab === 'completed' ? r.status === 'Completed' : r.status !== 'Completed').map((req) => (
                   <div key={req.request_id} className="request-card slide-up">
                     <div className="request-header">
                       <h3>{req.user?.username}</h3>
@@ -171,13 +199,15 @@ const BrokerDashboard = ({ user, onLogout }) => {
                       </div>
                     </div>
 
-                    {req.visit_date && req.visit_time ? (
+                    {req.visit_date && req.visit_time && (
                       <div className="schedule-info">
                         <p>✅ Visit Scheduled:</p>
                         <p><strong>Date:</strong> {new Date(req.visit_date).toLocaleDateString()}</p>
                         <p><strong>Time:</strong> {req.visit_time}</p>
                       </div>
-                    ) : (
+                    )}
+
+                    {req.status === 'Accepted' && !req.visit_date && (
                       <button 
                         className="schedule-btn"
                         onClick={() => setSelectedRequest(req.request_id)}
@@ -186,7 +216,17 @@ const BrokerDashboard = ({ user, onLogout }) => {
                       </button>
                     )}
 
-                    {!req.is_visited && (req.status === 'Accepted' || req.status === 'Scheduled') && (
+                    {req.status === 'Scheduled' && (
+                      <button 
+                        className="schedule-btn"
+                        style={{ backgroundColor: '#2196F3' }}
+                        onClick={() => handleReached(req.request_id)}
+                      >
+                        📍 Reached
+                      </button>
+                    )}
+
+                    {req.status === 'Reached' && !req.is_visited && (
                       <button
                         className="report-btn"
                         onClick={() => {
@@ -201,12 +241,45 @@ const BrokerDashboard = ({ user, onLogout }) => {
                     {req.is_visited && (
                       <div className="visit-report-box">
                         <p>🟢 Visit completed. Delivered: {req.delivered_quantity ?? 'N/A'}</p>
+                        <p>💰 Final Price: ₹{req.final_price ?? 'N/A'}</p>
                         <p>📌 Broker notes: {req.broker_comments || 'No comments'}</p>
                       </div>
                     )}
 
                     {reportModeRequestId === req.request_id && (
                       <div className="report-form slide-up">
+                        <div className="detail-row" style={{marginBottom: '10px'}}>
+                          <span className="label">Admin Given Price:</span>
+                          <span className="value">₹{req.our_price}</span>
+                        </div>
+                        <div className="detail-row" style={{marginBottom: '15px'}}>
+                          <span className="label">User Requested Price:</span>
+                          <span className="value">₹{req.customer_price}</span>
+                        </div>
+                        
+                        <div className="form-group">
+                          <label>Final Deal Price (₹)</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={reportData.final_price}
+                            onChange={(e) => setReportData({ ...reportData, final_price: e.target.value })}
+                            onKeyDown={handleKeyDown}
+                            min="0"
+                            className="animated-input"
+                            required
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label>Sample Photos</label>
+                          <input
+                            type="file"
+                            multiple
+                            onChange={(e) => setReportData({ ...reportData, sample_photos: e.target.files })}
+                            className="animated-input"
+                          />
+                          <small>You can select multiple photos.</small>
+                        </div>
                         <div className="form-group">
                           <label>Delivered Quantity</label>
                           <input
@@ -217,6 +290,7 @@ const BrokerDashboard = ({ user, onLogout }) => {
                             onKeyDown={handleKeyDown}
                             min="0"
                             className="animated-input"
+                            required
                           />
                         </div>
                         <div className="form-group">
@@ -238,7 +312,7 @@ const BrokerDashboard = ({ user, onLogout }) => {
                           <button
                             onClick={() => {
                               setReportModeRequestId(null);
-                              setReportData({ delivered_quantity: '', broker_comments: '' });
+                              setReportData({ delivered_quantity: '', broker_comments: '', final_price: '', sample_photos: [] });
                             }}
                             className="cancel-btn"
                           >

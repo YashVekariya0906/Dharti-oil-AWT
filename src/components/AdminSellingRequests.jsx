@@ -96,11 +96,13 @@ const AdminSellingRequests = () => {
   };
 
   const filteredRequests = requests.filter(req => {
-    if (activeTab === 'pending') return req.status === 'Pending';
-    if (activeTab === 'accepted') return req.status === 'Accepted';
-    if (activeTab === 'scheduled') return req.status === 'Scheduled';
+    if (activeTab === 'pending') return req.status === 'Pending' || req.status === 'Accepted';
+    if (activeTab === 'scheduled') return req.status === 'Scheduled' || req.status === 'Reached';
+    if (activeTab === 'completed') return req.status === 'Completed';
     return true;
   });
+
+
 
   return (
     <div className="admin-selling-container fade-in">
@@ -109,24 +111,24 @@ const AdminSellingRequests = () => {
         <button onClick={fetchSellingRequests} className="refresh-btn">🔄 Refresh</button>
       </div>
 
-      <div className="selling-tabs">
+      <div className="selling-tabs" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
         <button 
           className={`tab-btn ${activeTab === 'pending' ? 'active' : ''}`}
           onClick={() => setActiveTab('pending')}
         >
-          ⏳ Pending ({requests.filter(r => r.status === 'Pending').length})
-        </button>
-        <button 
-          className={`tab-btn ${activeTab === 'accepted' ? 'active' : ''}`}
-          onClick={() => setActiveTab('accepted')}
-        >
-          ✅ Accepted ({requests.filter(r => r.status === 'Accepted').length})
+          ⏳ Pending ({requests.filter(r => r.status === 'Pending' || r.status === 'Accepted').length})
         </button>
         <button 
           className={`tab-btn ${activeTab === 'scheduled' ? 'active' : ''}`}
           onClick={() => setActiveTab('scheduled')}
         >
-          📅 Scheduled ({requests.filter(r => r.status === 'Scheduled').length})
+          📅 Scheduled ({requests.filter(r => r.status === 'Scheduled' || r.status === 'Reached').length})
+        </button>
+        <button 
+          className={`tab-btn ${activeTab === 'completed' ? 'active' : ''}`}
+          onClick={() => setActiveTab('completed')}
+        >
+          ✅ Completed ({requests.filter(r => r.status === 'Completed').length})
         </button>
       </div>
 
@@ -142,14 +144,19 @@ const AdminSellingRequests = () => {
                 <div className="card-header">
                   <div>
                     <h3>{req.user?.username}</h3>
-                    <span className={`status-badge ${req.status?.toLowerCase()}`}>{req.status}</span>
                   </div>
-                  <button 
-                    className="select-btn"
-                    onClick={() => handleSelectRequest(req)}
-                  >
-                    {selectedRequest?.request_id === req.request_id ? '✓ Selected' : 'Select'}
-                  </button>
+                  {req.status === 'Pending' ? (
+                    <button 
+                      className="select-btn"
+                      onClick={() => handleSelectRequest(req)}
+                    >
+                      {selectedRequest?.request_id === req.request_id ? '✓ Selected' : 'Select'}
+                    </button>
+                  ) : (
+                    <span className={`status-badge ${req.status?.toLowerCase()}`} style={{ margin: 0 }}>
+                      {req.status}
+                    </span>
+                  )}
                 </div>
 
                 <div className="request-info">
@@ -188,7 +195,7 @@ const AdminSellingRequests = () => {
                       <div className="divider"></div>
                       <div className="info-row">
                         <span className="label">🤝 Assigned Broker:</span>
-                        <span className="value">{req.broker.name}</span>
+                        <span className="value dark-value font-bold">{req.broker.username}</span>
                       </div>
                     </>
                   )}
@@ -203,8 +210,31 @@ const AdminSellingRequests = () => {
                   {req.is_visited && (
                     <div className="visit-report-box">
                       <strong>📝 Visit Report</strong>
+                      <p><strong>Final Deal Price:</strong> ₹{req.final_price ?? 'N/A'}</p>
                       <p><strong>Delivered:</strong> {req.delivered_quantity ?? 'N/A'}</p>
                       <p><strong>Broker note:</strong> {req.broker_comments || 'No remarks'}</p>
+                      {req.sample_photos && (() => {
+                        try {
+                          const photos = JSON.parse(req.sample_photos);
+                          if (photos.length > 0) {
+                            return (
+                              <div style={{ marginTop: '10px' }}>
+                                <strong>Sample Photos:</strong>
+                                <div style={{ display: 'flex', gap: '10px', marginTop: '5px', flexWrap: 'wrap' }}>
+                                  {photos.map((photo, i) => (
+                                    <a key={i} href={photo} target="_blank" rel="noreferrer">
+                                      <img src={photo} alt={`Sample ${i+1}`} style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #ddd' }} />
+                                    </a>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          }
+                        } catch (e) {
+                          return null;
+                        }
+                        return null;
+                      })()}
                     </div>
                   )}
                 </div>

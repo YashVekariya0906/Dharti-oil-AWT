@@ -208,6 +208,12 @@ const UserProfile = ({ user, onClose, onUpdate }) => {
           >
             Selling Option
           </button>
+          <button 
+            className={`tab-btn ${activeTab === 'security' ? 'active' : ''}`}
+            onClick={() => setActiveTab('security')}
+          >
+            Security
+          </button>
         </div>
 
         <div className="user-profile-content fade-in">
@@ -322,6 +328,13 @@ const UserProfile = ({ user, onClose, onUpdate }) => {
             <div className="selling-tab fade-in">
               <h3>Create Selling Request</h3>
               <SellingRequestForm user={profileData} onSuccess={() => setActiveTab('profile')} />
+            </div>
+          )}
+
+          {activeTab === 'security' && (
+            <div className="security-tab fade-in">
+              <h3>Change Password</h3>
+              <ChangePasswordForm user={profileData} onSuccess={() => setActiveTab('profile')} />
             </div>
           )}
         </div>
@@ -470,6 +483,217 @@ const SellingRequestForm = ({ user, onSuccess }) => {
 
       <button type="submit" className="submit-btn" disabled={loading}>
         {loading ? 'Submitting...' : '✓ Submit Selling Request'}
+      </button>
+    </form>
+  );
+};
+
+// ChangePasswordForm Component
+const ChangePasswordForm = ({ user, onSuccess }) => {
+  const [formData, setFormData] = useState({
+    current_password: '',
+    new_password: '',
+    confirm_password: ''
+  });
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  
+  const [isForgotMode, setIsForgotMode] = useState(false);
+  const [forgotStep, setForgotStep] = useState(1);
+  const [forgotData, setForgotData] = useState({ otp: '', newPassword: '', confirmPassword: '' });
+
+  const handleChange = (e) => {
+    setFormData({...formData, [e.target.name]: e.target.value});
+  };
+  
+  const handleForgotChange = (e) => {
+    setForgotData({...forgotData, [e.target.name]: e.target.value});
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (formData.new_password !== formData.confirm_password) {
+      setMessage('New passwords do not match');
+      return;
+    }
+    setLoading(true);
+    setMessage('');
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/users/${user.user_id}/change-password`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          current_password: formData.current_password,
+          new_password: formData.new_password
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setMessage('Password changed successfully!');
+        setFormData({ current_password: '', new_password: '', confirm_password: '' });
+      } else {
+        setMessage(data.message || 'Failed to change password');
+      }
+    } catch (error) {
+      setMessage('Error: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startForgotPassword = async () => {
+    setIsForgotMode(true);
+    setLoading(true);
+    setMessage('');
+    try {
+      const res = await fetch('http://localhost:5000/api/forgot-password/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: user.emali })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMessage(data.message);
+        setForgotStep(2);
+      } else {
+        setMessage(data.message || 'Failed to send OTP.');
+        setIsForgotMode(false);
+      }
+    } catch (err) {
+      setMessage('Error connecting to server.');
+      setIsForgotMode(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    if (forgotData.newPassword !== forgotData.confirmPassword) {
+      setMessage('Passwords do not match');
+      return;
+    }
+    setLoading(true);
+    setMessage('');
+    try {
+      const res = await fetch('http://localhost:5000/api/forgot-password/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: user.emali,
+          otp_code: forgotData.otp,
+          new_password: forgotData.newPassword
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMessage('Password reset successfully!');
+        setTimeout(() => {
+          setIsForgotMode(false);
+          setForgotStep(1);
+          setForgotData({ otp: '', newPassword: '', confirmPassword: '' });
+          setMessage('');
+        }, 3000);
+      } else {
+        setMessage(data.message || 'Failed to reset password.');
+      }
+    } catch (err) {
+      setMessage('Error connecting to server.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (isForgotMode && forgotStep === 2) {
+    return (
+      <form onSubmit={handleResetPassword} className="selling-form">
+        <div style={{ marginBottom: '15px' }}>
+          <button type="button" onClick={() => { setIsForgotMode(false); setForgotStep(1); setMessage(''); }} style={{ background: 'none', border: 'none', color: '#4CAF50', cursor: 'pointer', padding: 0 }}>← Back to Change Password</button>
+        </div>
+        {message && (
+          <div className={`msg ${message.toLowerCase().includes('success') ? 'success' : 'error'}`}>
+            {message}
+          </div>
+        )}
+        <div className="form-group">
+          <label>OTP Code (Sent to {user.emali})</label>
+          <input type="text" name="otp" value={forgotData.otp} onChange={handleForgotChange} maxLength="6" required className="animated-input" />
+        </div>
+        <div className="form-group">
+          <label>New Password</label>
+          <input type="password" name="newPassword" value={forgotData.newPassword} onChange={handleForgotChange} required minLength="6" className="animated-input" />
+        </div>
+        <div className="form-group">
+          <label>Confirm New Password</label>
+          <input type="password" name="confirmPassword" value={forgotData.confirmPassword} onChange={handleForgotChange} required minLength="6" className="animated-input" />
+        </div>
+        <button type="submit" className="submit-btn" disabled={loading}>
+          {loading ? 'Resetting...' : '✓ Reset Password'}
+        </button>
+      </form>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="selling-form">
+      {message && (
+        <div className={`msg ${message.toLowerCase().includes('success') ? 'success' : 'error'}`}>
+          {message}
+        </div>
+      )}
+
+      <div className="form-group">
+        <label>Current Password</label>
+        <input 
+          type="password" 
+          name="current_password" 
+          value={formData.current_password} 
+          onChange={handleChange} 
+          required
+          className="animated-input"
+        />
+        <div style={{ textAlign: 'right', marginTop: '5px' }}>
+          <button 
+            type="button" 
+            onClick={startForgotPassword} 
+            disabled={loading}
+            style={{ background: 'none', border: 'none', color: '#4CAF50', cursor: loading ? 'not-allowed' : 'pointer', fontSize: '13px', padding: 0 }}
+          >
+            {loading && isForgotMode ? 'Sending OTP...' : 'Forgot Password?'}
+          </button>
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>New Password</label>
+        <input 
+          type="password" 
+          name="new_password" 
+          value={formData.new_password} 
+          onChange={handleChange} 
+          required
+          minLength="6"
+          className="animated-input"
+        />
+      </div>
+
+      <div className="form-group">
+        <label>Confirm New Password</label>
+        <input 
+          type="password" 
+          name="confirm_password" 
+          value={formData.confirm_password} 
+          onChange={handleChange} 
+          required
+          minLength="6"
+          className="animated-input"
+        />
+      </div>
+
+      <button type="submit" className="submit-btn" disabled={loading}>
+        {loading && !isForgotMode ? 'Updating...' : '✓ Change Password'}
       </button>
     </form>
   );

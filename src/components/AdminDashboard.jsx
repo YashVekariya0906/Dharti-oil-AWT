@@ -9,6 +9,7 @@ import AdminContactInquiries from './AdminContactInquiries';
 import AdminBrokerForm from './AdminBrokerForm';
 import AdminGlobalPrice from './AdminGlobalPrice';
 import AdminSellingRequests from './AdminSellingRequests';
+import AdminUsersList from './AdminUsersList';
 import './AdminDashboard.css';
 
 const AdminDashboard = ({ user, onLogout }) => {
@@ -85,6 +86,12 @@ const AdminDashboard = ({ user, onLogout }) => {
           >
             Selling Requests
           </li>
+          <li 
+            className={activeTab === 'usersList' ? 'active' : ''} 
+            onClick={() => setActiveTab('usersList')}
+          >
+            User Management
+          </li>
         </ul>
         <button onClick={onLogout} className="admin-logout-btn">Logout</button>
       </aside>
@@ -120,6 +127,8 @@ const AdminDashboard = ({ user, onLogout }) => {
              <AdminGlobalPrice />
           ) : activeTab === 'sellingRequests' ? (
              <AdminSellingRequests />
+          ) : activeTab === 'usersList' ? (
+             <AdminUsersList />
           ) : null}
         </div>
       </main>
