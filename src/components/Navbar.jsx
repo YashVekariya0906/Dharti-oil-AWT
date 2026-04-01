@@ -3,9 +3,14 @@ import './Navbar.css';
 import { FiShoppingCart, FiSearch } from 'react-icons/fi';
 import { FaRegHeart, FaBars, FaTimes } from 'react-icons/fa';
 
-const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user, onLoginClick, onRegisterClick, onBrokerLoginClick, onLogoutClick, onProfileClick, products = [], onProductSelect, onHomeClick, onBlogClick, onContactClick, activePage = 'home' }) => {
+const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user, onLoginClick, onRegisterClick, onBrokerLoginClick, onLogoutClick, onProfileClick, onWishlistClick, wishlistCount = 0, onCartClick, cartCount = 0, products = [], onProductSelect, onHomeClick, onBlogClick, onContactClick, activePage = 'home' }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [cartCount, setCartCount] = useState(3);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredProducts = products.filter(p => 
+    p.product_name && p.product_name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -98,13 +103,43 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
 
           {/* Icons Context */}
           <div className="navbar-icons desktop-icons">
-            <div className="icon-wrapper search-icon">
-              <FiSearch />
+            <div className="icon-wrapper search-icon" style={{ position: 'relative' }}>
+              <FiSearch onClick={() => setIsSearchOpen(!isSearchOpen)} />
+              {isSearchOpen && (
+                <div className="navbar-search-dropdown">
+                  <input 
+                    type="text" 
+                    placeholder="Search products..." 
+                    className="navbar-search-input"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    autoFocus
+                  />
+                  {searchQuery && (
+                    <ul className="navbar-search-results">
+                      {filteredProducts.length > 0 ? (
+                        filteredProducts.map(item => (
+                          <li key={item.product_id} onClick={() => {
+                            if (onProductSelect) onProductSelect(item);
+                            setIsSearchOpen(false);
+                            setSearchQuery('');
+                          }}>
+                            {item.product_name}
+                          </li>
+                        ))
+                      ) : (
+                        <li className="no-m">No products found</li>
+                      )}
+                    </ul>
+                  )}
+                </div>
+              )}
             </div>
-            <div className="icon-wrapper wishlist-icon">
+            <div className="icon-wrapper wishlist-icon" onClick={onWishlistClick}>
               <FaRegHeart />
+              {wishlistCount > 0 && <span className="cart-badge" style={{backgroundColor:'#0073e6'}}>{wishlistCount}</span>}
             </div>
-            <div className="icon-wrapper cart-icon">
+            <div className="icon-wrapper cart-icon" onClick={onCartClick}>
               <FiShoppingCart />
               {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
             </div>
@@ -112,7 +147,7 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
 
           {/* Mobile Menu Toggle & Cart (Visible on Mobile) */}
           <div className="mobile-actions">
-            <div className="icon-wrapper cart-icon mobile-cart">
+            <div className="icon-wrapper cart-icon mobile-cart" onClick={onCartClick}>
               <FiShoppingCart />
               {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
             </div>
@@ -164,13 +199,44 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
           <li><a href="#contact" className={activePage === 'contact' ? 'active' : ''} onClick={(e) => { e.preventDefault(); if (onContactClick) onContactClick(); toggleMobileMenu(); }}>Contact</a></li>
 
           <li className="mobile-bonus-icons">
-            <div className="icon-wrapper search-icon">
+            <div className="icon-wrapper search-icon" onClick={() => setIsSearchOpen(!isSearchOpen)}>
               <FiSearch /> <span>Search</span>
             </div>
-            <div className="icon-wrapper wishlist-icon">
-              <FaRegHeart /> <span>Wishlist</span>
+            <div className="icon-wrapper wishlist-icon" onClick={() => { if(onWishlistClick) onWishlistClick(); toggleMobileMenu(); }}>
+              <FaRegHeart /> <span>Wishlist {wishlistCount > 0 && `(${wishlistCount})`}</span>
             </div>
           </li>
+          
+          {isSearchOpen && (
+            <li className="mobile-search-area">
+              <input 
+                 type="text" 
+                 placeholder="Search products..." 
+                 className="navbar-search-input mobile-input"
+                 value={searchQuery}
+                 onChange={(e) => setSearchQuery(e.target.value)}
+                 autoFocus
+              />
+              {searchQuery && (
+                <ul className="navbar-search-results mobile-results">
+                  {filteredProducts.length > 0 ? (
+                    filteredProducts.map(item => (
+                      <li key={item.product_id} onClick={() => {
+                        if (onProductSelect) onProductSelect(item);
+                        setIsSearchOpen(false);
+                        setSearchQuery('');
+                        toggleMobileMenu();
+                      }}>
+                        {item.product_name}
+                      </li>
+                    ))
+                  ) : (
+                    <li className="no-m">No products found</li>
+                  )}
+                </ul>
+              )}
+            </li>
+          )}
         </ul>
       </div>
     </header>

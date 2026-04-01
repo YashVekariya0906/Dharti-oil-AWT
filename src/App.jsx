@@ -10,6 +10,8 @@ import Footer from './components/Footer'
 import InfoPage from './components/InfoPage'
 import Blog from './components/Blog'
 import ContactUs from './components/ContactUs'
+import WishlistDrawer from './components/WishlistDrawer'
+import CartDrawer from './components/CartDrawer'
 import { FaHeart, FaShoppingBag, FaInfoCircle } from 'react-icons/fa';
 import './App.css'
 
@@ -32,6 +34,44 @@ function App() {
   const [showBlog, setShowBlog] = useState(false);
   const [showContact, setShowContact] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [wishlist, setWishlist] = useState([]);
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  const [cart, setCart] = useState([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
+  const handleAddToCart = (product) => {
+    if (!user) {
+      localStorage.setItem('pendingCartAdd', JSON.stringify(product));
+      setShowLogin(true);
+      return;
+    }
+
+    setCart(prev => {
+      const existing = prev.find(item => item.product_id === product.product_id);
+      if (existing) {
+        return prev.map(item => item.product_id === product.product_id 
+          ? { ...item, quantity: item.quantity + 1 } 
+          : item
+        );
+      }
+      return [...prev, { ...product, quantity: 1 }];
+    });
+    setIsCartOpen(true);
+  };
+
+  const toggleWishlist = (product) => {
+    if (!user) {
+      localStorage.setItem('pendingWishlistAdd', JSON.stringify(product));
+      setShowLogin(true);
+      return;
+    }
+
+    if (wishlist.find(item => item.product_id === product.product_id)) {
+      setWishlist(wishlist.filter(item => item.product_id !== product.product_id));
+    } else {
+      setWishlist([...wishlist, product]);
+    }
+  };
 
   const handleLogin = (userData) => {
     console.log('🟢 User logged in:', userData);
@@ -46,6 +86,47 @@ function App() {
       setShowContact(true);
       setShowBlog(false);
       setSelectedProductInfo(null);
+    }
+    
+    // Check if there is a pending wishlist add
+    const pendingWishlistStr = localStorage.getItem('pendingWishlistAdd');
+    if (pendingWishlistStr) {
+      try {
+        const product = JSON.parse(pendingWishlistStr);
+        setWishlist(prev => {
+          if (!prev.find(item => item.product_id === product.product_id)) {
+            return [...prev, product];
+          }
+          return prev;
+        });
+        setIsWishlistOpen(true);
+      } catch (e) {
+        console.error("Error parsing pending wishlist item", e);
+      }
+      localStorage.removeItem('pendingWishlistAdd');
+      setIsWishlistOpen(true);
+    }
+
+    // Check if there is a pending cart add
+    const pendingCartStr = localStorage.getItem('pendingCartAdd');
+    if (pendingCartStr) {
+      try {
+        const product = JSON.parse(pendingCartStr);
+        setCart(prev => {
+          const existing = prev.find(item => item.product_id === product.product_id);
+          if (existing) {
+            return prev.map(item => item.product_id === product.product_id 
+              ? { ...item, quantity: item.quantity + 1 } 
+              : item
+            );
+          }
+          return [...prev, { ...product, quantity: 1 }];
+        });
+        setIsCartOpen(true);
+      } catch (e) {
+        console.error("Error parsing pending cart item", e);
+      }
+      localStorage.removeItem('pendingCartAdd');
     }
   };
 
@@ -138,6 +219,22 @@ function App() {
             onRegisterClick={() => setShowRegister(true)} 
             onLogoutClick={handleLogout}
             onProfileClick={() => setShowProfile(true)}
+            onWishlistClick={() => {
+              if (!user) {
+                setShowLogin(true);
+              } else {
+                setIsWishlistOpen(true);
+              }
+            }}
+            wishlistCount={user ? wishlist.length : 0}
+            onCartClick={() => {
+              if (!user) {
+                setShowLogin(true);
+              } else {
+                setIsCartOpen(true);
+              }
+            }}
+            cartCount={user ? cart.reduce((total, item) => total + item.quantity, 0) : 0}
             products={products}
             onProductSelect={(item) => {
               setSelectedProductInfo(item);
@@ -159,6 +256,24 @@ function App() {
             activePage={activePage}
           />
           
+          {isWishlistOpen && (
+            <WishlistDrawer 
+              wishlist={wishlist} 
+              setWishlist={setWishlist} 
+              onClose={() => setIsWishlistOpen(false)} 
+              onAddToCart={handleAddToCart}
+            />
+          )}
+
+          {isCartOpen && (
+            <CartDrawer 
+              cart={cart} 
+              setCart={setCart} 
+              onClose={() => setIsCartOpen(false)} 
+              user={user}
+            />
+          )}
+
           {/* Main Content */}
           <main className="main-content">
             {selectedProductInfo ? (
@@ -186,7 +301,12 @@ function App() {
                                -{Math.round(((item.product_discount - item.product_price) / item.product_discount) * 100)}%
                              </span>
                           )}
-                          <div className="favorite-icon"><FaHeart /></div>
+                          <div 
+                            className={`favorite-icon ${wishlist.some(w => w.product_id === item.product_id) ? 'active' : ''}`}
+                            onClick={() => toggleWishlist(item)}
+                          >
+                            <FaHeart />
+                          </div>
 
                           {item.product_image ? (
                             <img 
@@ -197,7 +317,9 @@ function App() {
                           ) : <div className="no-image-placeholder"></div>}
                           
                           <div className="hover-actions">
-                             <button className="hover-action-btn" title="Add to Cart"><FaShoppingBag /></button>
+                             <button className="hover-action-btn" title="Add to Cart" onClick={() => handleAddToCart(item)}>
+                               <FaShoppingBag />
+                             </button>
                              <button className="hover-action-btn" title="More Info" onClick={() => {
                                setSelectedProductInfo(item);
                                window.scrollTo({ top: 0, behavior: 'smooth' });
