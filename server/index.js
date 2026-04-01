@@ -723,6 +723,9 @@ app.get('/api/users/:id', async (req, res) => {
   }
 });
 
+// In-memory store for broker details waiting for OTP confirmation (never touches DB until verified)
+const pendingBrokers = new Map();
+
 // Broker Endpoints
 app.post('/api/admin/brokers', async (req, res) => {
   try {
@@ -750,50 +753,48 @@ app.post('/api/admin/brokers', async (req, res) => {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Generate OTP for broker verification
+    // Generate OTP
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const otpExpiry = Date.now() + 10 * 60 * 1000; // 10 min timestamp
 
-    console.log('📝 Creating broker with data:', { username, emali, moblie_no, address, pincode, commission_percent: commission_percent || 0 });
-
-    const broker = await User.create({
+    // ✅ Save ONLY in memory — NO DB record yet
+    pendingBrokers.set(emali, {
       username,
       moblie_no,
-      emali,
       address,
       pincode,
+      emali,
       password: hashedPassword,
-      role: 'broker',
       commission_percent: commission_percent || 0,
-      status: 'Inactive',
-      otp_code: otpCode,
-      otp_expiry: otpExpiry
+      otpCode,
+      otpExpiry
     });
 
-    console.log(' Broker created pending verification:', broker.toJSON());
+    console.log(`📋 Broker [${emali}] stored in memory, waiting for OTP verification`);
 
     // Send OTP email
     try {
       if (transporter) {
         await transporter.sendMail({
-          from: `"Dharti Oil App" <${process.env.EMAIL_USER}>`,
+          from: `"Dharti Amrut" <${process.env.EMAIL_USER}>`,
           to: emali,
-          subject: 'Broker Verification OTP - Dharti Oil',
-          html: `<p>Your broker verification code is <strong>${otpCode}</strong>. This code expires in 10 minutes.</p>`
+          subject: 'Broker Verification OTP - Dharti Amrut',
+          html: `<p>Your broker account verification code is <strong>${otpCode}</strong>. This code expires in 10 minutes.</p>`
         });
+      } else {
+        // Dev fallback — print OTP to console
+        console.log(`📧 [DEV MODE] OTP for ${emali} → ${otpCode}`);
       }
     } catch (emailError) {
       console.error('⚠️ Failed to send broker OTP email:', emailError.message);
     }
 
     res.status(201).json({
-      message: 'Broker created and OTP sent. Verify OTP to activate broker.',
-      emali,
-      user_id: broker.user_id,
-      status: broker.status
+      message: 'OTP sent to broker email. Verify OTP to complete broker registration.',
+      emali
     });
   } catch (error) {
-    console.error(' Error creating broker:', error);
+    console.error('Error during broker pre-registration:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -830,25 +831,41 @@ app.post('/api/admin/brokers/verify-otp', async (req, res) => {
       return res.status(400).json({ message: 'Email and OTP are required' });
     }
 
-    const broker = await User.findOne({
-      where: {
-        emali,
-        role: 'broker',
-        otp_code,
-        otp_expiry: { [require('sequelize').Op.gte]: new Date() }
-      }
-    });
+    const normalizedEmail = (emali || '').trim().toLowerCase();
+    const pending = pendingBrokers.get(normalizedEmail);
 
-    if (!broker) {
-      return res.status(400).json({ message: 'Invalid or expired OTP' });
+    if (!pending) {
+      return res.status(400).json({ message: 'No pending registration found for this email. Please fill in the broker form again.' });
     }
 
-    await User.update({ status: 'Active', otp_code: null, otp_expiry: null }, { where: { user_id: broker.user_id } });
+    if (pending.otpCode !== (otp_code || '').trim()) {
+      return res.status(400).json({ message: 'Invalid OTP code. Please try again.' });
+    }
 
-    const updatedBroker = await User.findByPk(broker.user_id);
-    res.status(200).json({ message: 'Broker verified and activated', broker: updatedBroker });
+    if (Date.now() > pending.otpExpiry) {
+      pendingBrokers.delete(normalizedEmail);
+      return res.status(400).json({ message: 'OTP has expired. Please refill the broker form to get a new OTP.' });
+    }
+
+    // ✅ OTP verified — NOW create the broker record in DB as Active
+    const broker = await User.create({
+      username: pending.username,
+      moblie_no: pending.moblie_no,
+      emali: pending.emali,
+      address: pending.address,
+      pincode: pending.pincode,
+      password: pending.password,
+      role: 'broker',
+      commission_percent: pending.commission_percent,
+      status: 'Active'
+    });
+
+    pendingBrokers.delete(normalizedEmail); // clean up memory
+
+    console.log(`✅ Broker ${broker.username} (${broker.emali}) successfully added to DB after OTP verification.`);
+    res.status(200).json({ message: 'Broker verified and added successfully!', broker });
   } catch (error) {
-    console.error(' Error verifying broker OTP:', error);
+    console.error('Error verifying broker OTP:', error);
     res.status(500).json({ error: error.message });
   }
 });
