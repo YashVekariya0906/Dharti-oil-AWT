@@ -1714,7 +1714,7 @@ app.put('/api/admin/users/:id/role', async (req, res) => {
   try {
     const { id } = req.params;
     const { role } = req.body;
-    
+
     if (!['user', 'broker', 'admin'].includes(role)) {
       return res.status(400).json({ message: 'Invalid role provided' });
     }
@@ -1736,7 +1736,7 @@ app.put('/api/admin/users/:id/role', async (req, res) => {
 app.post('/api/orders', async (req, res) => {
   try {
     const { user_id, items, total_amount, shipping_address, contact_number } = req.body;
-    
+
     if (!user_id || !items || items.length === 0 || !total_amount) {
       return res.status(400).json({ message: 'Missing required order details' });
     }
@@ -1770,8 +1770,8 @@ app.get('/api/admin/orders', async (req, res) => {
     const orders = await Order.findAll({
       include: [
         { model: User, as: 'user', attributes: { exclude: ['password'] } },
-        { 
-          model: OrderItem, 
+        {
+          model: OrderItem,
           as: 'items',
           include: [{ model: Product, as: 'product' }]
         }
@@ -1802,8 +1802,8 @@ app.get('/api/users/:id/orders', async (req, res) => {
     const orders = await Order.findAll({
       where: { user_id: req.params.id },
       include: [
-        { 
-          model: OrderItem, 
+        {
+          model: OrderItem,
           as: 'items',
           include: [{ model: Product, as: 'product' }]
         }

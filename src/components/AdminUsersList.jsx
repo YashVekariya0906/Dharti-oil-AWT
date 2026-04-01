@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { confirmAction } from '../utils/confirmAlert';
 import './AdminUsersList.css';
 
 const AdminUsersList = () => {
@@ -31,6 +32,13 @@ const AdminUsersList = () => {
   };
 
   const handleRoleChange = async (userId, newRole) => {
+    const isConfirmed = await confirmAction(`Are you sure you want to change this user's role to ${newRole.toUpperCase()}?`);
+    if (!isConfirmed) {
+      // We need to fetch users again to revert the select field UI if they cancelled
+      fetchUsers();
+      return;
+    }
+    
     try {
       const res = await fetch(`http://localhost:5000/api/admin/users/${userId}/role`, {
         method: 'PUT',

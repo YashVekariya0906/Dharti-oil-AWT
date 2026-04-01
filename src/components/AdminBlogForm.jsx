@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { confirmAction } from '../utils/confirmAlert';
 import './AdminBlogForm.css';
 
 const AdminBlogForm = () => {
@@ -131,7 +132,8 @@ const AdminBlogForm = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this blog post?')) {
+    const isConfirmed = await confirmAction('Are you sure you want to delete this blog post?');
+    if (!isConfirmed) {
       return;
     }
 

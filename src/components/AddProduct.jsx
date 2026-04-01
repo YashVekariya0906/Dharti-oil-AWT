@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { confirmAction } from '../utils/confirmAlert';
 import './AddProduct.css';
 
 export default function AddProduct() {
@@ -96,7 +97,8 @@ export default function AddProduct() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this product?")) return;
+    const isConfirmed = await confirmAction("Are you sure you want to delete this product?");
+    if (!isConfirmed) return;
     try {
       const res = await fetch(`http://localhost:5000/api/products/${id}`, { method: 'DELETE' });
       if (res.ok) {

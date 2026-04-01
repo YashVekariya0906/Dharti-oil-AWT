@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { confirmAction } from '../utils/confirmAlert';
 import './AdminSellingRequests.css'; 
 
 const AdminOrdersList = () => {
@@ -26,6 +27,13 @@ const AdminOrdersList = () => {
   }, []);
 
   const updateStatus = async (orderId, newStatus) => {
+    const isConfirmed = await confirmAction(`Are you sure you want to change the status of Order #${orderId} to ${newStatus}?`);
+    if (!isConfirmed) {
+      // Re-fetch to reset the UI select element if they cancelled the prompt
+      fetchOrders();
+      return;
+    }
+    
     try {
       const res = await fetch(`http://localhost:5000/api/admin/orders/${orderId}/status`, {
         method: 'PUT',

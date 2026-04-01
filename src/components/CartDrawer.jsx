@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import './WishlistDrawer.css';
 
-const CartDrawer = ({ cart, setCart, onClose, user }) => {
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
+const CartDrawer = ({ cart, setCart, onClose, user, directCheckout }) => {
+  const [isCheckingOut, setIsCheckingOut] = useState(directCheckout || false);
   const [shippingAddress, setShippingAddress] = useState(user?.address ? `${user.address}, ${user.pincode}` : '');
   const [contactNumber, setContactNumber] = useState(user?.moblie_no || '');
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
