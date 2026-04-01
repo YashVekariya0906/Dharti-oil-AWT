@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { FaHeart, FaRegHeart, FaShoppingCart } from 'react-icons/fa';
 import './InfoPage.css';
 
-export default function InfoPage({ product, onBack }) {
+export default function InfoPage({ product, onBack, onAddToCart, onBuyNow, onWishlistToggle, isWishlisted }) {
   const [info, setInfo] = useState(null);
   
   useEffect(() => {
@@ -116,15 +117,94 @@ export default function InfoPage({ product, onBack }) {
 
         <div className="info-right">
           <div className="info-product-card sticky-card">
+             {product?.product_discount > product?.product_price && (
+               <span className="discount-badge" style={{ position: 'absolute', top: 10, left: 10, backgroundColor: '#e74c3c', color: 'white', padding: '4px 10px', borderRadius: '4px', fontWeight: 'bold', zIndex: 1 }}>
+                 -{Math.round(((product.product_discount - product.product_price) / product.product_discount) * 100)}%
+               </span>
+             )}
+             
              {product?.product_image ? (
-               <div className="prod-img-wrapper">
-                 <img src={product.product_image} alt={product.product_name} />
+               <div className="prod-img-wrapper" style={{ position: 'relative' }}>
+                 <img src={product.product_image} alt={product.product_name} style={{ width: '100%', borderRadius: '8px' }} />
                </div>
              ) : (
                <div className="info-placeholder">No Image Available</div>
              )}
-             <h2 className="selected-prod-title">{product?.product_name}</h2>
-             <p className="selected-prod-price">₹{product?.product_price}</p>
+             
+             <h2 className="selected-prod-title" style={{ marginTop: '15px' }}>{product?.product_name}</h2>
+             
+             <p className="price-container" style={{ fontSize: '1.5rem', margin: '15px 0' }}>
+               {product?.product_discount > product?.product_price && (
+                 <span className="before-price" style={{ textDecoration: 'line-through', color: '#999', marginRight: '10px', fontSize: '1.1rem' }}>
+                   ₹{product.product_discount}
+                 </span>
+               )}
+               <span className="current-price" style={{ color: '#27ae60', fontWeight: 'bold' }}>₹{product?.product_price}</span>
+             </p>
+
+             <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+               <button 
+                 onClick={() => onAddToCart && onAddToCart(product)}
+                 style={{ 
+                   flex: 1, 
+                   display: 'flex', 
+                   justifyContent: 'center', 
+                   alignItems: 'center', 
+                   gap: '10px', 
+                   padding: '12px', 
+                   backgroundColor: '#2c3e50', 
+                   color: 'white', 
+                   border: 'none', 
+                   borderRadius: '4px', 
+                   fontSize: '1rem', 
+                   fontWeight: 'bold', 
+                   cursor: 'pointer' 
+                 }}
+               >
+                 <FaShoppingCart /> Add to Cart
+               </button>
+
+               <button 
+                 onClick={() => onBuyNow && onBuyNow(product)}
+                 style={{ 
+                   flex: 1, 
+                   display: 'flex', 
+                   justifyContent: 'center', 
+                   alignItems: 'center', 
+                   gap: '10px', 
+                   padding: '12px', 
+                   backgroundColor: '#e74c3c', 
+                   color: 'white', 
+                   border: 'none', 
+                   borderRadius: '4px', 
+                   fontSize: '1rem', 
+                   fontWeight: 'bold', 
+                   cursor: 'pointer' 
+                 }}
+               >
+                 Buy Now
+               </button>
+               
+               <button 
+                 onClick={() => onWishlistToggle && onWishlistToggle(product)}
+                 style={{ 
+                   display: 'flex', 
+                   justifyContent: 'center', 
+                   alignItems: 'center', 
+                   width: '50px', 
+                   backgroundColor: isWishlisted ? '#27ae60' : '#f4f6f8', 
+                   color: isWishlisted ? 'white' : '#7f8c8d', 
+                   border: '1px solid ' + (isWishlisted ? '#27ae60' : '#bdc3c7'), 
+                   borderRadius: '4px', 
+                   cursor: 'pointer',
+                   fontSize: '1.2rem',
+                   transition: 'all 0.3s'
+                 }}
+                 title="Add to Wishlist"
+               >
+                 {isWishlisted ? <FaHeart /> : <FaRegHeart />}
+               </button>
+             </div>
           </div>
         </div>
       </div>

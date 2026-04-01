@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { confirmAction } from '../utils/confirmAlert';
 import './UpdateNavbar.css';
 
 export default function UpdateNavbar() {
@@ -65,6 +66,9 @@ export default function UpdateNavbar() {
   };
 
   const handleDelete = async () => {
+    const isConfirmed = await confirmAction("Are you sure you want to delete these selected images? This action cannot be undone.");
+    if (!isConfirmed) return;
+
     if(selectedItems.length === 0) return;
     try {
       const res = await fetch('http://localhost:5000/api/navbar/delete', {

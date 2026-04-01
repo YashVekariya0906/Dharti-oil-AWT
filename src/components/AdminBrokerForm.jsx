@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { confirmAction } from '../utils/confirmAlert';
 import './AdminBrokerForm.css';
 
 const AdminBrokerForm = () => {
@@ -125,9 +126,8 @@ const AdminBrokerForm = () => {
   };
 
   const handleDeleteBroker = async (brokerId) => {
-    if (!window.confirm('Are you sure you want to delete this broker? This action cannot be undone.')) {
-      return;
-    }
+    const isConfirmed = await confirmAction("Are you sure you want to delete this broker account? This action is permanent and cannot be undone.");
+    if (!isConfirmed) return;
 
     try {
       setLoading(true);

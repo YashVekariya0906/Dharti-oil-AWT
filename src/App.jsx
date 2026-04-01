@@ -38,6 +38,7 @@ function App() {
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [directCheckout, setDirectCheckout] = useState(false);
 
   const handleAddToCart = (product) => {
     if (!user) {
@@ -56,6 +57,27 @@ function App() {
       }
       return [...prev, { ...product, quantity: 1 }];
     });
+    setIsCartOpen(true);
+  };
+
+  const handleBuyNow = (product) => {
+    if (!user) {
+      localStorage.setItem('pendingBuyNow', JSON.stringify(product));
+      setShowLogin(true);
+      return;
+    }
+
+    setCart(prev => {
+      const existing = prev.find(item => item.product_id === product.product_id);
+      if (existing) {
+        return prev.map(item => item.product_id === product.product_id 
+          ? { ...item, quantity: item.quantity + 1 } 
+          : item
+        );
+      }
+      return [...prev, { ...product, quantity: 1 }];
+    });
+    setDirectCheckout(true);
     setIsCartOpen(true);
   };
 
@@ -127,6 +149,29 @@ function App() {
         console.error("Error parsing pending cart item", e);
       }
       localStorage.removeItem('pendingCartAdd');
+    }
+
+    // Check if there is a pending buy now
+    const pendingBuyStr = localStorage.getItem('pendingBuyNow');
+    if (pendingBuyStr) {
+      try {
+        const product = JSON.parse(pendingBuyStr);
+        setCart(prev => {
+          const existing = prev.find(item => item.product_id === product.product_id);
+          if (existing) {
+            return prev.map(item => item.product_id === product.product_id 
+              ? { ...item, quantity: item.quantity + 1 } 
+              : item
+            );
+          }
+          return [...prev, { ...product, quantity: 1 }];
+        });
+        setDirectCheckout(true);
+        setIsCartOpen(true);
+      } catch (e) {
+        console.error("Error parsing pending buy now item", e);
+      }
+      localStorage.removeItem('pendingBuyNow');
     }
   };
 
@@ -269,15 +314,26 @@ function App() {
             <CartDrawer 
               cart={cart} 
               setCart={setCart} 
-              onClose={() => setIsCartOpen(false)} 
+              onClose={() => {
+                setIsCartOpen(false);
+                setDirectCheckout(false);
+              }} 
               user={user}
+              directCheckout={directCheckout}
             />
           )}
 
           {/* Main Content */}
           <main className="main-content">
             {selectedProductInfo ? (
-              <InfoPage product={selectedProductInfo} onBack={() => setSelectedProductInfo(null)} />
+              <InfoPage 
+                product={selectedProductInfo} 
+                onBack={() => setSelectedProductInfo(null)} 
+                onAddToCart={handleAddToCart}
+                onBuyNow={handleBuyNow}
+                onWishlistToggle={toggleWishlist}
+                isWishlisted={wishlist.some(w => w.product_id === selectedProductInfo.product_id)}
+              />
             ) : showBlog ? (
               <Blog />
             ) : showContact ? (

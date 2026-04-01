@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { confirmAction } from '../utils/confirmAlert';
 import './AdminSellingRequests.css';
 
 const AdminSellingRequests = () => {
@@ -67,6 +68,8 @@ const AdminSellingRequests = () => {
       setMessage('Please select a selling request before assigning.');
       return;
     }
+    const isConfirmed = await confirmAction(`Are you sure you want to assign broker ${broker.username || broker.broker_name || 'selected'} to this request?`);
+    if (!isConfirmed) return;
 
     try {
       setMessage('Assigning broker...');
