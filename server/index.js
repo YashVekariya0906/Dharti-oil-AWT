@@ -65,6 +65,18 @@ const contactStorage = multer.diskStorage({
 });
 const contactUpload = multer({ storage: contactStorage });
 
+// Visit Report photos upload
+const reportStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname);
+    cb(null, `report_photo_${Date.now()}_${Math.floor(Math.random() * 1000)}${ext}`);
+  }
+});
+const reportUpload = multer({ storage: reportStorage });
+
 const app = express();
 
 // Email configuration
@@ -989,25 +1001,53 @@ app.put('/api/brokers/selling-requests/:id/schedule', async (req, res) => {
   }
 });
 
-app.put('/api/brokers/selling-requests/:id/report', async (req, res) => {
+app.put('/api/brokers/selling-requests/:id/reached', async (req, res) => {
   try {
     const { id } = req.params;
-    const { delivered_quantity, broker_comments } = req.body;
+    await SellingRequest.update({ status: 'Reached' }, { where: { request_id: id } });
+    res.json({ message: 'Marked as Reached successfully.' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/api/brokers/selling-requests/:id/report', reportUpload.array('sample_photos', 5), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { delivered_quantity, broker_comments, final_price } = req.body;
 
     const request = await SellingRequest.findByPk(id);
     if (!request) {
       return res.status(404).json({ message: 'Selling request not found' });
     }
 
+    // Process uploaded photos
+    let samplePhotos = [];
+    if (request.sample_photos) {
+      try {
+        samplePhotos = JSON.parse(request.sample_photos);
+      } catch (e) {
+        samplePhotos = [];
+      }
+    }
+
+    if (req.files && req.files.length > 0) {
+      const newPhotos = req.files.map(file => 'http://localhost:5000/uploads/' + file.filename);
+      samplePhotos = [...samplePhotos, ...newPhotos];
+    }
+
     await SellingRequest.update({
-      delivered_quantity: delivered_quantity != null ? delivered_quantity : request.delivered_quantity,
+      delivered_quantity: delivered_quantity != null ? parseFloat(delivered_quantity) : request.delivered_quantity,
       broker_comments: broker_comments != null ? broker_comments : request.broker_comments,
+      final_price: final_price != null ? parseFloat(final_price) : request.final_price,
+      sample_photos: JSON.stringify(samplePhotos),
       is_visited: true,
       status: 'Completed'
     }, { where: { request_id: id } });
 
     res.json({ message: 'Visit report submitted successfully.' });
   } catch (error) {
+    console.error('Error submitting report:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -1440,6 +1480,107 @@ app.put('/api/users/profile', async (req, res) => {
   }
 });
 
+// User Password Change Endpoint
+app.put('/api/users/:id/change-password', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { current_password, new_password } = req.body;
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const passwordMatch = await bcrypt.compare(current_password, user.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ message: 'Incorrect current password' });
+    }
+
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(new_password, saltRounds);
+
+    await User.update({ password: hashedPassword }, { where: { user_id: id } });
+
+    res.status(200).json({ message: 'Password updated successfully!' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Forgot Password - Send OTP
+app.post('/api/forgot-password/send-otp', async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: 'Email is required' });
+
+    const user = await User.findOne({ where: { emali: email.toLowerCase(), role: 'user' } });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found or not eligible for this feature.' });
+    }
+
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log(`\n[FORGOT PASSWORD OTP] Code for ${email}: ${otpCode}\n`);
+
+    await User.update({
+      otp_code: otpCode,
+      otp_expiry: new Date(Date.now() + 10 * 60 * 1000)
+    }, { where: { user_id: user.user_id } });
+
+    try {
+      if (transporter) {
+        await transporter.sendMail({
+          from: `"Dharti Oil App" <${process.env.EMAIL_USER}>`,
+          to: email,
+          subject: 'Password Reset Verification - Dharti Oil',
+          html: `<p>Your password reset verification code is: <strong>${otpCode}</strong></p><p>This code will expire in 10 minutes.</p>`
+        });
+      }
+    } catch (e) {
+      console.error('Failed to send reset OTP email:', e);
+    }
+
+    res.status(200).json({ message: 'OTP sent successfully to your email.' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Forgot Password - Reset Password
+app.post('/api/forgot-password/reset', async (req, res) => {
+  try {
+    const { email, otp_code, new_password } = req.body;
+    if (!email || !otp_code || !new_password) {
+      return res.status(400).json({ message: 'Email, OTP, and new password are required' });
+    }
+
+    const user = await User.findOne({
+      where: {
+        emali: email.toLowerCase(),
+        role: 'user',
+        otp_code,
+        otp_expiry: { [require('sequelize').Op.gte]: new Date() }
+      }
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid or expired OTP.' });
+    }
+
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(new_password, saltRounds);
+
+    await User.update({
+      password: hashedPassword,
+      otp_code: null,
+      otp_expiry: null
+    }, { where: { user_id: user.user_id } });
+
+    res.status(200).json({ message: 'Password reset successfully!' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // User OTP Verification for Email Change (Send OTP)
 app.post('/api/users/send-otp', async (req, res) => {
   try {
@@ -1552,6 +1693,40 @@ app.get('/api/brokers/by-pincode/:pincode', async (req, res) => {
     res.json(brokers);
   } catch (error) {
     console.error('Error fetching brokers:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Admin endpoints for User Management
+app.get('/api/admin/users', async (req, res) => {
+  try {
+    const users = await User.findAll({
+      attributes: { exclude: ['password'] },
+      order: [['user_id', 'DESC']]
+    });
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/api/admin/users/:id/role', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+    
+    if (!['user', 'broker', 'admin'].includes(role)) {
+      return res.status(400).json({ message: 'Invalid role provided' });
+    }
+
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    await User.update({ role }, { where: { user_id: id } });
+    res.json({ message: `User role successfully updated to ${role}` });
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });

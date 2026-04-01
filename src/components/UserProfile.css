@@ -264,8 +264,8 @@
   transform: translateY(-2px);
 }
 
-/* Selling Tab */
-.selling-tab h3 {
+/* Selling & Security Tabs */
+.selling-tab h3, .security-tab h3 {
   color: #333;
   font-size: 20px;
   margin-top: 0;

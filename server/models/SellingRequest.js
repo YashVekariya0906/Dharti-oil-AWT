@@ -28,7 +28,7 @@ const SellingRequest = sequelize.define('SellingRequest', {
     allowNull: true
   },
   status: {
-    type: DataTypes.ENUM('Pending', 'Accepted', 'Scheduled', 'Completed', 'Cancelled'),
+    type: DataTypes.ENUM('Pending', 'Accepted', 'Scheduled', 'Reached', 'Completed', 'Cancelled'),
     allowNull: false,
     defaultValue: 'Pending'
   },
@@ -51,6 +51,14 @@ const SellingRequest = sequelize.define('SellingRequest', {
   },
   broker_comments: {
     type: DataTypes.TEXT,
+    allowNull: true
+  },
+  final_price: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true
+  },
+  sample_photos: {
+    type: DataTypes.TEXT, // Store JSON string of URLs
     allowNull: true
   }
 }, {
