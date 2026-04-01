@@ -5,7 +5,7 @@ const nodemailer = require('nodemailer');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { SiteConfig, Navbar, Product, User, FooterSettings, ShopDetails, Blog, ContactDetails, ContactInquiry, SellingRequest, GlobalPrice, syncDatabase, sequelize } = require('./models');
+const { SiteConfig, Navbar, Product, User, FooterSettings, ShopDetails, Blog, ContactDetails, ContactInquiry, SellingRequest, GlobalPrice, Order, OrderItem, syncDatabase, sequelize } = require('./models');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const storage = multer.diskStorage({
@@ -1726,6 +1726,91 @@ app.put('/api/admin/users/:id/role', async (req, res) => {
 
     await User.update({ role }, { where: { user_id: id } });
     res.json({ message: `User role successfully updated to ${role}` });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ====== ORDERS API ======
+// Place a new order
+app.post('/api/orders', async (req, res) => {
+  try {
+    const { user_id, items, total_amount, shipping_address, contact_number } = req.body;
+    
+    if (!user_id || !items || items.length === 0 || !total_amount) {
+      return res.status(400).json({ message: 'Missing required order details' });
+    }
+
+    const order = await Order.create({
+      user_id,
+      total_amount,
+      shipping_address: shipping_address || '',
+      contact_number: contact_number || ''
+    });
+
+    const orderItemsData = items.map(item => ({
+      order_id: order.order_id,
+      product_id: item.product_id,
+      quantity: item.quantity,
+      price_at_purchase: item.product_price
+    }));
+
+    await OrderItem.bulkCreate(orderItemsData);
+
+    res.status(201).json({ message: 'Order placed successfully!', order_id: order.order_id });
+  } catch (error) {
+    console.error('Error placing order:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Admin get all orders
+app.get('/api/admin/orders', async (req, res) => {
+  try {
+    const orders = await Order.findAll({
+      include: [
+        { model: User, as: 'user', attributes: { exclude: ['password'] } },
+        { 
+          model: OrderItem, 
+          as: 'items',
+          include: [{ model: Product, as: 'product' }]
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Admin update order status
+app.put('/api/admin/orders/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    await Order.update({ status }, { where: { order_id: id } });
+    res.json({ message: `Order status updated to ${status}` });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// User get their orders
+app.get('/api/users/:id/orders', async (req, res) => {
+  try {
+    const orders = await Order.findAll({
+      where: { user_id: req.params.id },
+      include: [
+        { 
+          model: OrderItem, 
+          as: 'items',
+          include: [{ model: Product, as: 'product' }]
+        }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+    res.json(orders);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

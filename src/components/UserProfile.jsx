@@ -214,6 +214,12 @@ const UserProfile = ({ user, onClose, onUpdate }) => {
           >
             Security
           </button>
+          <button 
+            className={`tab-btn ${activeTab === 'orders' ? 'active' : ''}`}
+            onClick={() => setActiveTab('orders')}
+          >
+            My Orders
+          </button>
         </div>
 
         <div className="user-profile-content fade-in">
@@ -335,6 +341,13 @@ const UserProfile = ({ user, onClose, onUpdate }) => {
             <div className="security-tab fade-in">
               <h3>Change Password</h3>
               <ChangePasswordForm user={profileData} onSuccess={() => setActiveTab('profile')} />
+            </div>
+          )}
+
+          {activeTab === 'orders' && (
+            <div className="orders-tab fade-in">
+              <h3>Order History</h3>
+              <UserOrdersList user={profileData} />
             </div>
           )}
         </div>
@@ -696,6 +709,64 @@ const ChangePasswordForm = ({ user, onSuccess }) => {
         {loading && !isForgotMode ? 'Updating...' : '✓ Change Password'}
       </button>
     </form>
+  );
+};
+
+// UserOrdersList Component
+const UserOrdersList = ({ user }) => {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/users/${user.user_id}/orders`);
+      const data = await res.json();
+      if(res.ok) setOrders(data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <div className="loading" style={{textAlign:'center', padding:'20px'}}>Loading orders...</div>;
+  if (!orders || orders.length === 0) return <div style={{textAlign:'center', color:'#777', padding:'30px'}}>You haven't placed any orders yet.</div>;
+
+  return (
+    <div className="orders-list" style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '10px' }}>
+      {orders.map(order => (
+        <div key={order.order_id} style={{ border: '1px solid #ececec', padding: '15px', borderRadius: '8px', background: 'white', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '10px' }}>
+            <strong style={{ color: '#2c3e50', fontSize: '1.1rem' }}>Order #{order.order_id}</strong>
+            <span style={{ 
+              padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', textTransform: 'uppercase',
+              backgroundColor: order.status === 'Pending' ? '#f39c12' : order.status === 'Delivered' ? '#27ae60' : order.status === 'Cancelled' ? '#e74c3c' : '#3498db',
+              color: 'white'
+             }}>
+              {order.status}
+            </span>
+          </div>
+          <div style={{ fontSize: '0.9rem', color: '#555', marginBottom: '15px', display: 'flex', justifyContent: 'space-between' }}>
+            <span><strong>Date:</strong> {new Date(order.createdAt).toLocaleDateString()}</span>
+            <span><strong>Total:</strong> <span style={{color: '#e74c3c', fontWeight: 'bold'}}>₹{order.total_amount}</span></span>
+          </div>
+          <div style={{ backgroundColor: '#f9f9f9', padding: '10px', borderRadius: '6px' }}>
+            <strong style={{ display: 'block', marginBottom: '10px', fontSize: '0.85rem', color: '#777', textTransform: 'uppercase' }}>Items ({order.items?.length || 0}):</strong>
+            {order.items && order.items.map(item => (
+              <div key={item.order_item_id} style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', fontSize: '0.9rem' }}>
+                <img src={item.product?.product_image || ''} alt={item.product?.product_name || "Product"} style={{ width: '35px', height: '35px', objectFit: 'cover', borderRadius: '4px', marginRight: '12px', border: '1px solid #eee' }} />
+                <div style={{ flex: 1, color: '#333' }}>{item.product?.product_name || "Unknown Product"} <span style={{color: '#999'}}>x{item.quantity}</span></div>
+                <div style={{ fontWeight: '500' }}>₹{item.price_at_purchase * item.quantity}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
   );
 };
 

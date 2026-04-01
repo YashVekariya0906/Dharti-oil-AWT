@@ -205,3 +205,6 @@ body {
   font-weight: 600;
   font-size: 1.1rem;
 }
+
+.favorite-icon.active { color: #27ae60; }
+.favorite-icon { cursor: pointer; transition: color 0.3s; }
