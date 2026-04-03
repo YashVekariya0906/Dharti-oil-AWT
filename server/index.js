@@ -1021,7 +1021,7 @@ app.put('/api/brokers/selling-requests/:id/schedule', async (req, res) => {
 app.put('/api/brokers/selling-requests/:id/reached', async (req, res) => {
   try {
     const { id } = req.params;
-    await SellingRequest.update({ status: 'Reached' }, { where: { request_id: id } });
+    await SellingRequest.update({ status: 'Reached', reached_at: new Date() }, { where: { request_id: id } });
     res.json({ message: 'Marked as Reached successfully.' });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1065,6 +1065,132 @@ app.put('/api/brokers/selling-requests/:id/report', reportUpload.array('sample_p
     res.json({ message: 'Visit report submitted successfully.' });
   } catch (error) {
     console.error('Error submitting report:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Admin reject a pending selling request
+app.put('/api/admin/selling-requests/:id/reject', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { admin_reject_reason, admin_reject_comment } = req.body;
+
+    if (!admin_reject_reason) {
+      return res.status(400).json({ message: 'Rejection reason is required.' });
+    }
+
+    const request = await SellingRequest.findByPk(id);
+    if (!request) return res.status(404).json({ message: 'Selling request not found.' });
+
+    await SellingRequest.update({
+      status: 'AdminRejected',
+      admin_reject_reason,
+      admin_reject_comment: admin_reject_comment || ''
+    }, { where: { request_id: id } });
+
+    res.json({ message: 'Selling request rejected by admin.' });
+  } catch (error) {
+    console.error('Error rejecting selling request:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Broker rejects product at user location (after Reached)
+const brokerRejectStorage = multer.diskStorage({
+  destination: function (req, file, cb) { cb(null, 'uploads/'); },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname);
+    cb(null, `broker_reject_photo_${Date.now()}_${Math.floor(Math.random() * 1000)}${ext}`);
+  }
+});
+const brokerRejectUpload = multer({ storage: brokerRejectStorage });
+
+app.put('/api/brokers/selling-requests/:id/broker-reject', brokerRejectUpload.array('broker_reject_photos', 5), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { broker_reject_reason, broker_reject_comment } = req.body;
+
+    if (!broker_reject_reason) {
+      return res.status(400).json({ message: 'Rejection reason is required.' });
+    }
+
+    const request = await SellingRequest.findByPk(id);
+    if (!request) return res.status(404).json({ message: 'Selling request not found.' });
+
+    let photos = [];
+    if (req.files && req.files.length > 0) {
+      photos = req.files.map(f => 'http://localhost:5000/uploads/' + f.filename);
+    }
+
+    await SellingRequest.update({
+      status: 'BrokerRejected',
+      broker_reject_reason,
+      broker_reject_comment: broker_reject_comment || '',
+      broker_reject_photos: JSON.stringify(photos)
+    }, { where: { request_id: id } });
+
+    res.json({ message: 'Broker rejection submitted. Awaiting admin review.' });
+  } catch (error) {
+    console.error('Error submitting broker rejection:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Admin confirms broker rejection → forwards to user
+app.put('/api/admin/selling-requests/:id/confirm-broker-rejection', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const request = await SellingRequest.findByPk(id);
+    if (!request) return res.status(404).json({ message: 'Selling request not found.' });
+
+    await SellingRequest.update({
+      status: 'BrokerRejectionConfirmed'
+    }, { where: { request_id: id } });
+
+    res.json({ message: 'Broker rejection confirmed and forwarded to user.' });
+  } catch (error) {
+    console.error('Error confirming broker rejection:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Admin overrides broker rejection: reset request to assign another broker
+app.put('/api/admin/selling-requests/:id/override-broker-rejection', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const request = await SellingRequest.findByPk(id);
+    if (!request) return res.status(404).json({ message: 'Selling request not found.' });
+
+    await SellingRequest.update({
+      status: 'Pending',
+      broker_id: null,
+      broker_reject_reason: null,
+      broker_reject_comment: null,
+      broker_reject_photos: null,
+      visit_day: null,
+      visit_time: null,
+      reached_at: null
+    }, { where: { request_id: id } });
+
+    res.json({ message: 'Request reset. You can now assign another broker.' });
+  } catch (error) {
+    console.error('Error overriding broker rejection:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get user's own selling requests (for user profile)
+app.get('/api/users/:id/selling-requests', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const requests = await SellingRequest.findAll({
+      where: { user_id: id },
+      include: [{ model: User, as: 'broker' }],
+      order: [['created_at', 'DESC']]
+    });
+    res.json(requests);
+  } catch (error) {
+    console.error('Error fetching user selling requests:', error);
     res.status(500).json({ error: error.message });
   }
 });

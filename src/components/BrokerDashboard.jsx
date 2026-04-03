@@ -11,6 +11,11 @@ const BrokerDashboard = ({ user, onLogout }) => {
   const [reportData, setReportData] = useState({ delivered_quantity: '', broker_comments: '', final_price: '', sample_photos: [] });
   const [message, setMessage] = useState('');
 
+  // Broker reject mode
+  const [brokerRejectModeId, setBrokerRejectModeId] = useState(null);
+  const [brokerRejectData, setBrokerRejectData] = useState({ reason: '', comment: '', photos: [] });
+  const [brokerRejectLoading, setBrokerRejectLoading] = useState(false);
+
   useEffect(() => {
     if (user) {
       fetchAssignedRequests();
@@ -95,7 +100,7 @@ const BrokerDashboard = ({ user, onLogout }) => {
       formData.append('delivered_quantity', parseFloat(reportData.delivered_quantity));
       formData.append('broker_comments', reportData.broker_comments);
       formData.append('final_price', parseFloat(reportData.final_price));
-      
+
       Array.from(reportData.sample_photos).forEach(file => {
         formData.append('sample_photos', file);
       });
@@ -118,6 +123,51 @@ const BrokerDashboard = ({ user, onLogout }) => {
       setMessage('Error: ' + error.message);
     }
   };
+
+  // Broker Reject submit
+  const handleBrokerRejectSubmit = async (requestId) => {
+    if (!brokerRejectData.reason.trim()) {
+      setMessage('Please enter a rejection reason.');
+      return;
+    }
+    setBrokerRejectLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('broker_reject_reason', brokerRejectData.reason.trim());
+      formData.append('broker_reject_comment', brokerRejectData.comment.trim());
+      Array.from(brokerRejectData.photos).forEach(file => {
+        formData.append('broker_reject_photos', file);
+      });
+
+      const res = await fetch(`http://localhost:5000/api/brokers/selling-requests/${requestId}/broker-reject`, {
+        method: 'PUT',
+        body: formData
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setMessage('✅ Rejection submitted. Admin will review.');
+        setBrokerRejectModeId(null);
+        setBrokerRejectData({ reason: '', comment: '', photos: [] });
+        fetchAssignedRequests();
+      } else {
+        setMessage('❌ ' + (data.message || 'Failed to submit rejection.'));
+      }
+    } catch (err) {
+      setMessage('❌ Error: ' + err.message);
+    } finally {
+      setBrokerRejectLoading(false);
+    }
+  };
+
+  const formatDateTime = (dt) => {
+    if (!dt) return 'N/A';
+    return new Date(dt).toLocaleString('en-IN', {
+      day: '2-digit', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', hour12: true
+    });
+  };
+
   return (
     <div className="broker-dashboard-container">
       <div className="broker-dashboard-header">
@@ -129,19 +179,19 @@ const BrokerDashboard = ({ user, onLogout }) => {
       </div>
 
       <div className="broker-dashboard-tabs">
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'requests' ? 'active' : ''}`}
           onClick={() => setActiveTab('requests')}
         >
           📋 New Requests
         </button>
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'completed' ? 'active' : ''}`}
           onClick={() => setActiveTab('completed')}
         >
           ✅ Completed
         </button>
-        <button 
+        <button
           className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`}
           onClick={() => setActiveTab('profile')}
         >
@@ -153,216 +203,318 @@ const BrokerDashboard = ({ user, onLogout }) => {
         {(activeTab === 'requests' || activeTab === 'completed') && (
           <div className="requests-section">
             <h2>{activeTab === 'requests' ? 'Assigned Selling Requests' : 'Completed Requests'}</h2>
-            {message && <div className={`msg ${message.includes('success') ? 'success' : 'error'}`}>{message}</div>}
-            
+            {message && <div className={`msg ${message.includes('✅') || message.includes('success') ? 'success' : 'error'}`}>{message}</div>}
+
             {loading ? (
               <p className="loading">Loading...</p>
-            ) : requests.filter(r => activeTab === 'completed' ? r.status === 'Completed' : r.status !== 'Completed').length === 0 ? (
+            ) : requests.filter(r => activeTab === 'completed' ? r.status === 'Completed' : !['Completed', 'BrokerRejected'].includes(r.status) || r.status === 'BrokerRejected').length === 0 ? (
               <p className="no-data">No {activeTab === 'requests' ? 'assigned' : 'completed'} requests yet</p>
             ) : (
               <div className="requests-list">
-                {requests.filter(r => activeTab === 'completed' ? r.status === 'Completed' : r.status !== 'Completed').map((req) => (
-                  <div key={req.request_id} className="request-card slide-up">
-                    <div className="request-header">
-                      <h3>{req.user?.username}</h3>
-                      <span className={`status-badge ${req.status?.toLowerCase()}`}>{req.status}</span>
-                    </div>
-                    
-                    <div className="request-details">
-                      <div className="detail-row">
-                        <span className="label">📧 Email:</span>
-                        <span className="value">{req.user?.emali}</span>
+                {requests
+                  .filter(r => activeTab === 'completed'
+                    ? r.status === 'Completed'
+                    : r.status !== 'Completed')
+                  .map((req) => (
+                    <div key={req.request_id} className="request-card slide-up">
+                      <div className="request-header">
+                        <h3>{req.user?.username}</h3>
+                        <span className={`status-badge ${req.status?.toLowerCase()}`}>{req.status}</span>
                       </div>
-                      <div className="detail-row">
-                        <span className="label">📱 Mobile:</span>
-                        <span className="value">{req.user?.moblie_no}</span>
-                      </div>
-                      <div className="detail-row">
-                        <span className="label">📍 Address:</span>
-                        <span className="value">{req.user?.address}</span>
-                      </div>
-                      <div className="detail-row">
-                        <span className="label">📮 Pincode:</span>
-                        <span className="value">{req.user?.pincode}</span>
-                      </div>
-                      <div className="detail-row">
-                        <span className="label">📦 Stock (mound):</span>
-                        <span className="value">{req.stock_per_mound}</span>
-                      </div>
-                      <div className="detail-row">
-                        <span className="label">💰 Customer Price:</span>
-                        <span className="value">₹{req.customer_price}</span>
-                      </div>
-                      <div className="detail-row">
-                        <span className="label">Our Price:</span>
-                        <span className="value">₹{req.our_price}</span>
-                      </div>
-                    </div>
 
-                    {req.visit_date && req.visit_time && (
-                      <div className="schedule-info">
-                        <p>✅ Visit Scheduled:</p>
-                        <p><strong>Date:</strong> {new Date(req.visit_date).toLocaleDateString()}</p>
-                        <p><strong>Time:</strong> {req.visit_time}</p>
-                      </div>
-                    )}
-
-                    {req.status === 'Accepted' && !req.visit_date && (
-                      <button 
-                        className="schedule-btn"
-                        onClick={() => setSelectedRequest(req.request_id)}
-                      >
-                        📅 Schedule Visit
-                      </button>
-                    )}
-
-                    {req.status === 'Scheduled' && (
-                      <button 
-                        className="schedule-btn"
-                        style={{ backgroundColor: '#2196F3' }}
-                        onClick={() => handleReached(req.request_id)}
-                      >
-                        📍 Reached
-                      </button>
-                    )}
-
-                    {req.status === 'Reached' && !req.is_visited && (
-                      <button
-                        className="report-btn"
-                        onClick={() => {
-                          setReportModeRequestId(req.request_id);
-                          setMessage('');
-                        }}
-                      >
-                        📝 Report Visit
-                      </button>
-                    )}
-
-                    {req.is_visited && (
-                      <div className="visit-report-box">
-                        <p>🟢 Visit completed. Delivered: {req.delivered_quantity ?? 'N/A'}</p>
-                        <p>💰 Final Price: ₹{req.final_price ?? 'N/A'}</p>
-                        <p>📌 Broker notes: {req.broker_comments || 'No comments'}</p>
-                      </div>
-                    )}
-
-                    {reportModeRequestId === req.request_id && (
-                      <div className="report-form slide-up">
-                        <div className="detail-row" style={{marginBottom: '10px'}}>
-                          <span className="label">Admin Given Price:</span>
-                          <span className="value">₹{req.our_price}</span>
+                      <div className="request-details">
+                        <div className="detail-row">
+                          <span className="label">📧 Email:</span>
+                          <span className="value">{req.user?.emali}</span>
                         </div>
-                        <div className="detail-row" style={{marginBottom: '15px'}}>
-                          <span className="label">User Requested Price:</span>
+                        <div className="detail-row">
+                          <span className="label">📱 Mobile:</span>
+                          <span className="value">{req.user?.moblie_no}</span>
+                        </div>
+                        <div className="detail-row">
+                          <span className="label">📍 Address:</span>
+                          <span className="value">{req.user?.address}</span>
+                        </div>
+                        <div className="detail-row">
+                          <span className="label">📮 Pincode:</span>
+                          <span className="value">{req.user?.pincode}</span>
+                        </div>
+                        <div className="detail-row">
+                          <span className="label">📦 Stock (mound):</span>
+                          <span className="value">{req.stock_per_mound}</span>
+                        </div>
+                        <div className="detail-row">
+                          <span className="label">💰 Customer Price:</span>
                           <span className="value">₹{req.customer_price}</span>
                         </div>
-                        
-                        <div className="form-group">
-                          <label>Final Deal Price (₹)</label>
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={reportData.final_price}
-                            onChange={(e) => setReportData({ ...reportData, final_price: e.target.value })}
-                            onKeyDown={handleKeyDown}
-                            min="0"
-                            className="animated-input"
-                            required
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label>Sample Photos</label>
-                          <input
-                            type="file"
-                            multiple
-                            onChange={(e) => setReportData({ ...reportData, sample_photos: e.target.files })}
-                            className="animated-input"
-                          />
-                          <small>You can select multiple photos.</small>
-                        </div>
-                        <div className="form-group">
-                          <label>Delivered Quantity</label>
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={reportData.delivered_quantity}
-                            onChange={(e) => setReportData({ ...reportData, delivered_quantity: e.target.value })}
-                            onKeyDown={handleKeyDown}
-                            min="0"
-                            className="animated-input"
-                            required
-                          />
-                        </div>
-                        <div className="form-group">
-                          <label>Broker Comments</label>
-                          <textarea
-                            value={reportData.broker_comments}
-                            onChange={(e) => setReportData({ ...reportData, broker_comments: e.target.value })}
-                            className="animated-input"
-                            rows={3}
-                          />
-                        </div>
-                        <div className="form-actions">
-                          <button
-                            onClick={() => handleReportSubmit(req.request_id)}
-                            className="save-btn"
-                          >
-                            ✓ Submit Report
-                          </button>
-                          <button
-                            onClick={() => {
-                              setReportModeRequestId(null);
-                              setReportData({ delivered_quantity: '', broker_comments: '', final_price: '', sample_photos: [] });
-                            }}
-                            className="cancel-btn"
-                          >
-                            ✕ Cancel
-                          </button>
+                        <div className="detail-row">
+                          <span className="label">Our Price:</span>
+                          <span className="value">₹{req.our_price}</span>
                         </div>
                       </div>
-                    )}
 
-                    {selectedRequest === req.request_id && (
-                      <div className="schedule-form slide-up">
-                        <div className="form-group">
-                          <label>Visit Date</label>
-                          <input 
-                            type="date" 
-                            value={scheduleData.visit_date}
-                            onChange={(e) => setScheduleData({...scheduleData, visit_date: e.target.value})}
-                            className="animated-input"
-                          />
+                      {/* Schedule info */}
+                      {req.visit_day && req.visit_time && (
+                        <div className="schedule-info">
+                          <p>📅 <strong>Visit Scheduled:</strong></p>
+                          <p><strong>Date:</strong> {new Date(req.visit_day).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+                          <p><strong>Time:</strong> {req.visit_time}</p>
                         </div>
-                        <div className="form-group">
-                          <label>Visit Time</label>
-                          <input 
-                            type="time" 
-                            value={scheduleData.visit_time}
-                            onChange={(e) => setScheduleData({...scheduleData, visit_time: e.target.value})}
-                            className="animated-input"
-                          />
+                      )}
+
+                      {/* Reached timestamp */}
+                      {req.reached_at && (
+                        <div className="broker-reached-info">
+                          <strong>📍 You reached at:</strong>
+                          <p>{formatDateTime(req.reached_at)}</p>
                         </div>
-                        <div className="form-actions">
-                          <button 
-                            onClick={() => handleScheduleSubmit(req.request_id)}
-                            className="save-btn"
-                          >
-                            ✓ Confirm Schedule
-                          </button>
-                          <button 
+                      )}
+
+                      {/* Button: Schedule Visit */}
+                      {req.status === 'Accepted' && !req.visit_day && (
+                        <button
+                          className="schedule-btn"
+                          onClick={() => setSelectedRequest(req.request_id)}
+                        >
+                          📅 Schedule Visit
+                        </button>
+                      )}
+
+                      {/* Button: Reached */}
+                      {req.status === 'Scheduled' && (
+                        <button
+                          className="schedule-btn"
+                          style={{ backgroundColor: '#2196F3' }}
+                          onClick={() => handleReached(req.request_id)}
+                        >
+                          📍 Reached
+                        </button>
+                      )}
+
+                      {/* Buttons after Reached: Report Visit + Reject */}
+                      {req.status === 'Reached' && !req.is_visited && (
+                        <div className="reached-action-buttons">
+                          <button
+                            className="report-btn"
                             onClick={() => {
-                              setSelectedRequest(null);
-                              setScheduleData({ visit_date: '', visit_time: '' });
+                              setReportModeRequestId(req.request_id);
+                              setBrokerRejectModeId(null);
+                              setMessage('');
                             }}
-                            className="cancel-btn"
                           >
-                            ✕ Cancel
+                            📝 Report Visit
+                          </button>
+                          <button
+                            className="broker-reject-trigger-btn"
+                            onClick={() => {
+                              setBrokerRejectModeId(req.request_id);
+                              setReportModeRequestId(null);
+                              setBrokerRejectData({ reason: '', comment: '', photos: [] });
+                              setMessage('');
+                            }}
+                          >
+                            ✕ Reject Product
                           </button>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                      )}
+
+                      {/* Broker Rejection Form */}
+                      {brokerRejectModeId === req.request_id && (
+                        <div className="broker-reject-form slide-up">
+                          <h4 style={{ color: '#c0392b', marginBottom: '12px' }}>🚫 Reject Product</h4>
+                          <p style={{ fontSize: '13px', color: '#666', marginBottom: '12px' }}>
+                            Describe why you are rejecting this request. Admin will review with your photos.
+                          </p>
+                          <div className="form-group">
+                            <label>Reason <span style={{ color: 'red' }}>*</span></label>
+                            <input
+                              type="text"
+                              className="animated-input"
+                              placeholder="e.g. Product quality issue, quantity mismatch..."
+                              value={brokerRejectData.reason}
+                              onChange={(e) => setBrokerRejectData({ ...brokerRejectData, reason: e.target.value })}
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label>Comment</label>
+                            <textarea
+                              className="animated-input"
+                              placeholder="Additional details..."
+                              rows={3}
+                              value={brokerRejectData.comment}
+                              onChange={(e) => setBrokerRejectData({ ...brokerRejectData, comment: e.target.value })}
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label>Sample Photos (proof)</label>
+                            <input
+                              type="file"
+                              multiple
+                              className="animated-input"
+                              onChange={(e) => setBrokerRejectData({ ...brokerRejectData, photos: e.target.files })}
+                            />
+                            <small>Upload photos showing the issue</small>
+                          </div>
+                          <div className="form-actions">
+                            <button
+                              className="broker-reject-save-btn"
+                              onClick={() => handleBrokerRejectSubmit(req.request_id)}
+                              disabled={brokerRejectLoading}
+                            >
+                              {brokerRejectLoading ? 'Submitting...' : '✓ Submit Rejection'}
+                            </button>
+                            <button
+                              className="cancel-btn"
+                              onClick={() => {
+                                setBrokerRejectModeId(null);
+                                setBrokerRejectData({ reason: '', comment: '', photos: [] });
+                              }}
+                            >
+                              ✕ Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Broker Rejected — awaiting admin */}
+                      {req.status === 'BrokerRejected' && (
+                        <div className="broker-rejected-status-box">
+                          <strong>⏳ Rejection Submitted — Awaiting Admin Review</strong>
+                          <p><span className="rj-lbl">Reason:</span> {req.broker_reject_reason}</p>
+                          {req.broker_reject_comment && (
+                            <p><span className="rj-lbl">Comment:</span> {req.broker_reject_comment}</p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Completed visit report */}
+                      {req.is_visited && req.status === 'Completed' && (
+                        <div className="visit-report-box">
+                          <p>🟢 Visit completed. Delivered: {req.delivered_quantity ?? 'N/A'}</p>
+                          <p>💰 Final Price: ₹{req.final_price ?? 'N/A'}</p>
+                          <p>📌 Broker notes: {req.broker_comments || 'No comments'}</p>
+                        </div>
+                      )}
+
+                      {/* Report Visit Form */}
+                      {reportModeRequestId === req.request_id && (
+                        <div className="report-form slide-up">
+                          <div className="detail-row" style={{ marginBottom: '10px' }}>
+                            <span className="label">Admin Given Price:</span>
+                            <span className="value">₹{req.our_price}</span>
+                          </div>
+                          <div className="detail-row" style={{ marginBottom: '15px' }}>
+                            <span className="label">User Requested Price:</span>
+                            <span className="value">₹{req.customer_price}</span>
+                          </div>
+
+                          <div className="form-group">
+                            <label>Final Deal Price (₹)</label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={reportData.final_price}
+                              onChange={(e) => setReportData({ ...reportData, final_price: e.target.value })}
+                              onKeyDown={handleKeyDown}
+                              min="0"
+                              className="animated-input"
+                              required
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label>Sample Photos</label>
+                            <input
+                              type="file"
+                              multiple
+                              onChange={(e) => setReportData({ ...reportData, sample_photos: e.target.files })}
+                              className="animated-input"
+                            />
+                            <small>You can select multiple photos.</small>
+                          </div>
+                          <div className="form-group">
+                            <label>Delivered Quantity</label>
+                            <input
+                              type="number"
+                              step="0.01"
+                              value={reportData.delivered_quantity}
+                              onChange={(e) => setReportData({ ...reportData, delivered_quantity: e.target.value })}
+                              onKeyDown={handleKeyDown}
+                              min="0"
+                              className="animated-input"
+                              required
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label>Broker Comments</label>
+                            <textarea
+                              value={reportData.broker_comments}
+                              onChange={(e) => setReportData({ ...reportData, broker_comments: e.target.value })}
+                              className="animated-input"
+                              rows={3}
+                            />
+                          </div>
+                          <div className="form-actions">
+                            <button
+                              onClick={() => handleReportSubmit(req.request_id)}
+                              className="save-btn"
+                            >
+                              ✓ Submit Report
+                            </button>
+                            <button
+                              onClick={() => {
+                                setReportModeRequestId(null);
+                                setReportData({ delivered_quantity: '', broker_comments: '', final_price: '', sample_photos: [] });
+                              }}
+                              className="cancel-btn"
+                            >
+                              ✕ Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Schedule Form */}
+                      {selectedRequest === req.request_id && (
+                        <div className="schedule-form slide-up">
+                          <div className="form-group">
+                            <label>Visit Date</label>
+                            <input
+                              type="date"
+                              value={scheduleData.visit_date}
+                              onChange={(e) => setScheduleData({ ...scheduleData, visit_date: e.target.value })}
+                              className="animated-input"
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label>Visit Time</label>
+                            <input
+                              type="time"
+                              value={scheduleData.visit_time}
+                              onChange={(e) => setScheduleData({ ...scheduleData, visit_time: e.target.value })}
+                              className="animated-input"
+                            />
+                          </div>
+                          <div className="form-actions">
+                            <button
+                              onClick={() => handleScheduleSubmit(req.request_id)}
+                              className="save-btn"
+                            >
+                              ✓ Confirm Schedule
+                            </button>
+                            <button
+                              onClick={() => {
+                                setSelectedRequest(null);
+                                setScheduleData({ visit_date: '', visit_time: '' });
+                              }}
+                              className="cancel-btn"
+                            >
+                              ✕ Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
               </div>
             )}
           </div>

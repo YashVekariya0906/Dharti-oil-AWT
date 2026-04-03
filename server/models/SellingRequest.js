@@ -28,7 +28,10 @@ const SellingRequest = sequelize.define('SellingRequest', {
     allowNull: true
   },
   status: {
-    type: DataTypes.ENUM('Pending', 'Accepted', 'Scheduled', 'Reached', 'Completed', 'Cancelled'),
+    type: DataTypes.ENUM(
+      'Pending', 'Accepted', 'Scheduled', 'Reached', 'Completed', 'Cancelled',
+      'AdminRejected', 'BrokerRejected', 'BrokerRejectionConfirmed'
+    ),
     allowNull: false,
     defaultValue: 'Pending'
   },
@@ -38,6 +41,10 @@ const SellingRequest = sequelize.define('SellingRequest', {
   },
   visit_time: {
     type: DataTypes.TIME,
+    allowNull: true
+  },
+  reached_at: {
+    type: DataTypes.DATE,
     allowNull: true
   },
   is_visited: {
@@ -59,6 +66,28 @@ const SellingRequest = sequelize.define('SellingRequest', {
   },
   sample_photos: {
     type: DataTypes.TEXT, // Store JSON string of URLs
+    allowNull: true
+  },
+  // Admin rejection fields
+  admin_reject_reason: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  admin_reject_comment: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  // Broker rejection fields
+  broker_reject_reason: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
+  broker_reject_comment: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  broker_reject_photos: {
+    type: DataTypes.TEXT, // JSON array of photo URLs
     allowNull: true
   }
 }, {

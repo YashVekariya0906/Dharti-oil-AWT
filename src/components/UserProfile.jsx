@@ -332,8 +332,16 @@ const UserProfile = ({ user, onClose, onUpdate }) => {
 
           {activeTab === 'selling' && (
             <div className="selling-tab fade-in">
-              <h3>Create Selling Request</h3>
-              <SellingRequestForm user={profileData} onSuccess={() => setActiveTab('profile')} />
+              <div style={{ display: 'flex', gap: '20px', flexDirection: 'column' }}>
+                <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px', border: '1px solid #e9ecef' }}>
+                  <h3 style={{ marginTop: 0, color: '#2d5a27', fontSize: '18px' }}>Create New Request</h3>
+                  <SellingRequestForm user={profileData} onSuccess={() => setActiveTab('profile')} />
+                </div>
+                <div style={{ background: '#fff', padding: '15px', borderRadius: '8px', border: '1px solid #e9ecef' }}>
+                  <h3 style={{ marginTop: 0, color: '#2c3e50', fontSize: '18px' }}>Your Selling Requests</h3>
+                  <UserSellingHistory user={profileData} />
+                </div>
+              </div>
             </div>
           )}
 
@@ -764,6 +772,77 @@ const UserOrdersList = ({ user }) => {
               </div>
             ))}
           </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// UserSellingHistory Component to show request history and rejections
+const UserSellingHistory = ({ user }) => {
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  const fetchHistory = async () => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/users/${user.user_id}/selling-requests`);
+      const data = await res.json();
+      if (res.ok) setRequests(data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <div className="loading" style={{textAlign:'center', padding:'10px'}}>Loading history...</div>;
+  if (!requests || requests.length === 0) return <div style={{textAlign:'center', color:'#777', padding:'10px'}}>No selling requests yet.</div>;
+
+  return (
+    <div className="user-selling-history">
+      {requests.map(req => (
+        <div key={req.request_id} style={{ border: '1px solid #ddd', padding: '15px', borderRadius: '8px', marginBottom: '15px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '10px' }}>
+            <strong>Request #{req.request_id}</strong>
+            <span style={{ 
+              padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold',
+              backgroundColor: req.status === 'Pending' ? '#fff3cd' : req.status === 'AdminRejected' || req.status === 'BrokerRejectionConfirmed' ? '#fdecea' : req.status === 'Completed' ? '#d4edda' : '#e3f2fd',
+              color: req.status === 'AdminRejected' || req.status === 'BrokerRejectionConfirmed' ? '#c0392b' : req.status === 'Completed' ? '#155724' : '#333'
+            }}>
+              {req.status === 'AdminRejected' ? 'Rejected' : req.status === 'BrokerRejectionConfirmed' ? 'Rejected by Broker' : req.status}
+            </span>
+          </div>
+          
+          <div style={{ fontSize: '0.9rem', color: '#555' }}>
+            <div style={{display:'flex', justifyContent:'space-between', marginBottom:'5px'}}>
+              <span><strong>Stock:</strong> {req.stock_per_mound} mound</span>
+              <span><strong>Your Price:</strong> ₹{req.customer_price}</span>
+            </div>
+            <div style={{display:'flex', justifyContent:'space-between', marginBottom:'5px'}}>
+              <span><strong>Our Price:</strong> ₹{req.our_price}</span>
+              <span><strong>Date:</strong> {new Date(req.createdAt || req.created_at || Date.now()).toLocaleDateString()}</span>
+            </div>
+          </div>
+
+          {req.status === 'AdminRejected' && (
+            <div style={{ background: '#fdf3f2', borderLeft: '4px solid #e74c3c', padding: '10px', marginTop: '10px', borderRadius: '4px', fontSize: '0.9rem' }}>
+              <strong style={{ color: '#c0392b', display: 'block', marginBottom: '5px' }}>🚫 Admin Rejected</strong>
+              <p style={{ margin: '0 0 5px 0' }}><strong>Reason:</strong> {req.admin_reject_reason}</p>
+              {req.admin_reject_comment && <p style={{ margin: 0 }}><strong>Comment:</strong> {req.admin_reject_comment}</p>}
+            </div>
+          )}
+
+          {req.status === 'BrokerRejectionConfirmed' && (
+            <div style={{ background: '#fdf3f2', borderLeft: '4px solid #e91e63', padding: '10px', marginTop: '10px', borderRadius: '4px', fontSize: '0.9rem' }}>
+              <strong style={{ color: '#c0392b', display: 'block', marginBottom: '5px' }}>❌ Rejected After Visit</strong>
+              <p style={{ margin: '0 0 5px 0' }}><strong>Reason:</strong> {req.broker_reject_reason}</p>
+              {req.broker_reject_comment && <p style={{ margin: 0 }}><strong>Comment:</strong> {req.broker_reject_comment}</p>}
+            </div>
+          )}
         </div>
       ))}
     </div>
