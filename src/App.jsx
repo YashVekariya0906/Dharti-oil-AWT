@@ -319,6 +319,7 @@ function App() {
                 setDirectCheckout(false);
               }} 
               user={user}
+              logoUrl={navbarData.nav_logo_path}
               directCheckout={directCheckout}
             />
           )}
@@ -426,6 +427,7 @@ function App() {
               {console.log('✅ Rendering UserProfile modal for user:', user)}
               <UserProfile 
                 user={user} 
+                logoUrl={navbarData.nav_logo_path}
                 onClose={() => {
                   console.log('🔵 Profile modal closed');
                   setShowProfile(false);

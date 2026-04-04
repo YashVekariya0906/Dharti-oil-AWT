@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import './WishlistDrawer.css';
+import { generateReceipt } from '../utils/receiptGenerator';
 
-const CartDrawer = ({ cart, setCart, onClose, user, directCheckout }) => {
+const CartDrawer = ({ cart, setCart, onClose, user, logoUrl, directCheckout }) => {
   const [isCheckingOut, setIsCheckingOut] = useState(directCheckout || false);
   const [shippingAddress, setShippingAddress] = useState(user?.address ? `${user.address}, ${user.pincode}` : '');
   const [contactNumber, setContactNumber] = useState(user?.moblie_no || '');
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
+  const [orderSuccessData, setOrderSuccessData] = useState(null);
 
   // New states for billing setup
   const [deliveryConfig, setDeliveryConfig] = useState(null);
@@ -100,8 +102,21 @@ const CartDrawer = ({ cart, setCart, onClose, user, directCheckout }) => {
 
       const data = await res.json();
       if (res.ok) {
+        const placedOrderData = {
+          order_id: data.order_id,
+          created_at: new Date().toISOString(),
+          shipping_address: shippingAddress,
+          contact_number: contactNumber,
+          items: cart,
+          cgst: cgstAmount,
+          sgst: sgstAmount,
+          delivery_charge: deliveryChargeAmount,
+          total_amount: finalTotalAmount
+        };
         setCart([]);
+        setOrderSuccessData(placedOrderData);
         setOrderSuccess(true);
+        generateReceipt(placedOrderData, user, logoUrl, true);
       } else {
         alert(data.error || data.message || "Failed to place order.");
       }
@@ -124,7 +139,16 @@ const CartDrawer = ({ cart, setCart, onClose, user, directCheckout }) => {
         {orderSuccess ? (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px', textAlign: 'center' }}>
             <h2 style={{ color: '#27ae60', fontSize: '2rem', marginBottom: '10px' }}>✓ Success!</h2>
-            <p style={{ fontSize: '1.1rem', color: '#555', marginBottom: '20px' }}>Your order has been placed successfully. Thank you for shopping with Dharti Amrut!</p>
+            {orderSuccessData && (
+              <p style={{ fontSize: '1.1rem', color: '#555', marginBottom: '20px' }}>
+                Your order is confirmed.<br/>
+                <strong>Date:</strong> {new Date(orderSuccessData.created_at).toLocaleDateString()}<br/>
+                <strong>Time:</strong> {new Date(orderSuccessData.created_at).toLocaleTimeString()}<br/>
+                <strong>Order ID:</strong> {orderSuccessData.order_id}<br/><br/>
+                Now you can check on your own profile and you can download from there.<br/>
+                Thank you!
+              </p>
+            )}
             <button onClick={onClose} style={{ padding: '10px 20px', backgroundColor: '#2c3e50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '1rem' }}>
               Continue Shopping
             </button>
