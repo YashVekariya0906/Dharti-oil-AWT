@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { FaDownload } from 'react-icons/fa';
 import './UserProfile.css';
+import { generateReceipt } from '../utils/receiptGenerator';
 
-const UserProfile = ({ user, onClose, onUpdate }) => {
+const UserProfile = ({ user, logoUrl, onClose, onUpdate }) => {
   const [activeTab, setActiveTab] = useState('profile');
   const [profileData, setProfileData] = useState(user || {});
   const [isEditing, setIsEditing] = useState(false);
@@ -355,7 +357,7 @@ const UserProfile = ({ user, onClose, onUpdate }) => {
           {activeTab === 'orders' && (
             <div className="orders-tab fade-in">
               <h3>Order History</h3>
-              <UserOrdersList user={profileData} />
+              <UserOrdersList user={profileData} logoUrl={logoUrl} />
             </div>
           )}
         </div>
@@ -721,7 +723,7 @@ const ChangePasswordForm = ({ user, onSuccess }) => {
 };
 
 // UserOrdersList Component
-const UserOrdersList = ({ user }) => {
+const UserOrdersList = ({ user, logoUrl }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -750,13 +752,51 @@ const UserOrdersList = ({ user }) => {
         <div key={order.order_id} style={{ border: '1px solid #ececec', padding: '15px', borderRadius: '8px', background: 'white', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '10px' }}>
             <strong style={{ color: '#2c3e50', fontSize: '1.1rem' }}>Order #{order.order_id}</strong>
-            <span style={{ 
-              padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', textTransform: 'uppercase',
-              backgroundColor: order.status === 'Pending' ? '#f39c12' : order.status === 'Delivered' ? '#27ae60' : order.status === 'Cancelled' ? '#e74c3c' : '#3498db',
-              color: 'white'
-             }}>
-              {order.status}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <span style={{ 
+                padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', textTransform: 'uppercase',
+                backgroundColor: order.status === 'Pending' ? '#f39c12' : order.status === 'Delivered' ? '#27ae60' : order.status === 'Cancelled' ? '#e74c3c' : '#3498db',
+                color: 'white',
+                marginRight: '10px'
+               }}>
+                {order.status}
+              </span>
+              <button onClick={(e) => {
+                 e.stopPropagation();
+                 try {
+                   const receiptData = {
+                     order_id: order.order_id,
+                     created_at: order.createdAt,
+                     shipping_address: order.shipping_address,
+                     contact_number: order.contact_number,
+                     items: order.items.map(i => ({ 
+                       product_name: i.product?.product_name || 'Product', 
+                       quantity: i.quantity, 
+                       product_price: i.price_at_purchase 
+                     })),
+                     cgst: order.cgst,
+                     sgst: order.sgst,
+                     delivery_charge: order.delivery_charge,
+                     total_amount: order.total_amount
+                   };
+                   generateReceipt(receiptData, user, logoUrl, true);
+                 } catch (err) {
+                   console.error("Error clicking download receipt", err);
+                 }
+              }} 
+              style={{ 
+                display: 'flex', alignItems: 'center', gap: '6px',
+                padding: '6px 14px', background: 'transparent',
+                color: '#2c3e50', border: '1px solid #2c3e50',
+                borderRadius: '20px', cursor: 'pointer', fontSize: '0.85rem',
+                fontWeight: 'bold', transition: 'all 0.2s', boxShadow: 'none'
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = '#2c3e50'; e.currentTarget.style.color = 'white'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#2c3e50'; }}
+              >
+                <FaDownload /> Download Receipt
+              </button>
+            </div>
           </div>
           <div style={{ fontSize: '0.9rem', color: '#555', marginBottom: '15px', display: 'flex', justifyContent: 'space-between' }}>
             <span><strong>Date:</strong> {new Date(order.createdAt).toLocaleDateString()}</span>
