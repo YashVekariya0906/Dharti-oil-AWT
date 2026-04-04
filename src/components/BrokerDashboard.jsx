@@ -192,6 +192,12 @@ const BrokerDashboard = ({ user, onLogout }) => {
           ✅ Completed
         </button>
         <button
+          className={`tab-btn ${activeTab === 'rejected' ? 'active' : ''}`}
+          onClick={() => setActiveTab('rejected')}
+        >
+          🚫 Rejected
+        </button>
+        <button
           className={`tab-btn ${activeTab === 'profile' ? 'active' : ''}`}
           onClick={() => setActiveTab('profile')}
         >
@@ -200,21 +206,27 @@ const BrokerDashboard = ({ user, onLogout }) => {
       </div>
 
       <div className="broker-dashboard-content fade-in">
-        {(activeTab === 'requests' || activeTab === 'completed') && (
+        {(activeTab === 'requests' || activeTab === 'completed' || activeTab === 'rejected') && (
           <div className="requests-section">
-            <h2>{activeTab === 'requests' ? 'Assigned Selling Requests' : 'Completed Requests'}</h2>
+            <h2>{activeTab === 'requests' ? 'Assigned Selling Requests' : activeTab === 'completed' ? 'Completed Requests' : 'Rejected Requests'}</h2>
             {message && <div className={`msg ${message.includes('✅') || message.includes('success') ? 'success' : 'error'}`}>{message}</div>}
 
             {loading ? (
               <p className="loading">Loading...</p>
-            ) : requests.filter(r => activeTab === 'completed' ? r.status === 'Completed' : !['Completed', 'BrokerRejected'].includes(r.status) || r.status === 'BrokerRejected').length === 0 ? (
-              <p className="no-data">No {activeTab === 'requests' ? 'assigned' : 'completed'} requests yet</p>
+            ) : requests.filter(r => {
+                if (activeTab === 'completed') return r.status === 'Completed';
+                if (activeTab === 'rejected') return ['BrokerRejected', 'BrokerRejectionConfirmed', 'AdminRejected'].includes(r.status);
+                return !['Completed', 'BrokerRejected', 'BrokerRejectionConfirmed', 'AdminRejected'].includes(r.status);
+              }).length === 0 ? (
+              <p className="no-data">No {activeTab} requests yet</p>
             ) : (
               <div className="requests-list">
                 {requests
-                  .filter(r => activeTab === 'completed'
-                    ? r.status === 'Completed'
-                    : r.status !== 'Completed')
+                  .filter(r => {
+                    if (activeTab === 'completed') return r.status === 'Completed';
+                    if (activeTab === 'rejected') return ['BrokerRejected', 'BrokerRejectionConfirmed', 'AdminRejected'].includes(r.status);
+                    return !['Completed', 'BrokerRejected', 'BrokerRejectionConfirmed', 'AdminRejected'].includes(r.status);
+                  })
                   .map((req) => (
                     <div key={req.request_id} className="request-card slide-up">
                       <div className="request-header">

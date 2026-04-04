@@ -826,6 +826,14 @@ const UserSellingHistory = ({ user }) => {
               <span><strong>Our Price:</strong> ₹{req.our_price}</span>
               <span><strong>Date:</strong> {new Date(req.createdAt || req.created_at || Date.now()).toLocaleDateString()}</span>
             </div>
+            
+            {req.visit_day && req.visit_time && (
+              <div style={{ background: '#e3f2fd', padding: '10px', marginTop: '10px', borderRadius: '4px', borderLeft: '4px solid #2196F3' }}>
+                <strong style={{ color: '#1976D2', display: 'block', marginBottom: '5px' }}>📅 Broker Visit Scheduled</strong>
+                <p style={{ margin: 0 }}><strong>Date:</strong> {new Date(req.visit_day).toLocaleDateString()} at <strong>{req.visit_time}</strong></p>
+                <p style={{ margin: '5px 0 0 0', fontSize: '0.85rem' }}>Please be available at the scheduled time.</p>
+              </div>
+            )}
           </div>
 
           {req.status === 'AdminRejected' && (

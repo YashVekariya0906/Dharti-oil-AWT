@@ -5,7 +5,7 @@ const nodemailer = require('nodemailer');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { SiteConfig, Navbar, Product, User, FooterSettings, ShopDetails, Blog, ContactDetails, ContactInquiry, SellingRequest, GlobalPrice, Order, OrderItem, syncDatabase, sequelize } = require('./models');
+const { SiteConfig, Navbar, Product, User, FooterSettings, ShopDetails, Blog, ContactDetails, ContactInquiry, SellingRequest, GlobalPrice, Order, OrderItem, DeliveryCharge, syncDatabase, sequelize } = require('./models');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const storage = multer.diskStorage({
@@ -1874,11 +1874,52 @@ app.put('/api/admin/users/:id/role', async (req, res) => {
   }
 });
 
+// ====== DELIVERY CHARGE API ======
+app.get('/api/delivery-charge', async (req, res) => {
+  try {
+    let charges = await DeliveryCharge.findOne();
+    if (!charges) {
+      charges = await DeliveryCharge.create({});
+    }
+    res.json(charges);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/admin/delivery-charge', async (req, res) => {
+  try {
+    const { charge_360001, charge_360002, charge_360003, charge_360004, upi_id } = req.body;
+    let charges = await DeliveryCharge.findOne();
+    if (charges) {
+      await DeliveryCharge.update({
+        charge_360001: charge_360001 || 0,
+        charge_360002: charge_360002 || 0,
+        charge_360003: charge_360003 || 0,
+        charge_360004: charge_360004 || 0,
+        upi_id: upi_id || ''
+      }, { where: { id: charges.id } });
+    } else {
+      await DeliveryCharge.create({
+        charge_360001: charge_360001 || 0,
+        charge_360002: charge_360002 || 0,
+        charge_360003: charge_360003 || 0,
+        charge_360004: charge_360004 || 0,
+        upi_id: upi_id || ''
+      });
+    }
+    const updated = await DeliveryCharge.findOne();
+    res.json({ message: 'Delivery properties updated successfully!', charges: updated });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ====== ORDERS API ======
 // Place a new order
 app.post('/api/orders', async (req, res) => {
   try {
-    const { user_id, items, total_amount, shipping_address, contact_number } = req.body;
+    const { user_id, items, total_amount, shipping_address, contact_number, payment_method, delivery_charge, cgst, sgst } = req.body;
 
     if (!user_id || !items || items.length === 0 || !total_amount) {
       return res.status(400).json({ message: 'Missing required order details' });
@@ -1888,7 +1929,11 @@ app.post('/api/orders', async (req, res) => {
       user_id,
       total_amount,
       shipping_address: shipping_address || '',
-      contact_number: contact_number || ''
+      contact_number: contact_number || '',
+      payment_method: payment_method || 'COD',
+      delivery_charge: delivery_charge || 0,
+      cgst: cgst || 0,
+      sgst: sgst || 0
     });
 
     const orderItemsData = items.map(item => ({

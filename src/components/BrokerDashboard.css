@@ -1,7 +1,7 @@
 /* Broker Dashboard Container */
 .broker-dashboard-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f4f7f6; /* off-white/light gray so white cards stand out */
   padding: 20px;
 }
 
@@ -69,9 +69,9 @@
 }
 
 .tab-btn.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
   color: white;
-  border-color: #667eea;
+  border-color: #4caf50;
 }
 
 .tab-btn:hover:not(.active) {
@@ -141,8 +141,8 @@
 }
 
 .request-card:hover {
-  border-color: #667eea;
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
+  border-color: #4caf50;
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.15);
 }
 
 .request-header {
@@ -247,7 +247,7 @@
 .schedule-btn {
   width: 100%;
   padding: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -259,16 +259,16 @@
 
 .schedule-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 6px 15px rgba(76, 175, 80, 0.3);
 }
 
 /* Schedule Form */
 .schedule-form {
-  background: #f0f7ff;
+  background: #e8f5e9;
   padding: 15px;
   border-radius: 8px;
   margin-top: 15px;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #4caf50;
 }
 
 .schedule-form .form-group {
@@ -294,8 +294,8 @@
 
 .schedule-form .form-group .animated-input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #4caf50;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
 }
 
 .form-actions {
@@ -461,4 +461,39 @@
   .save-btn, .cancel-btn {
     width: 100%;
   }
+}
+
+.broker-reject-trigger-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 10px;
+  transition: all 0.3s ease;
+}
+
+.broker-reject-trigger-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(255, 75, 43, 0.3);
+}
+
+.broker-reject-save-btn {
+  flex: 1;
+  padding: 10px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.broker-reject-save-btn:hover {
+  background: #c82333;
+  transform: translateY(-2px);
 }
