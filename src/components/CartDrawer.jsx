@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import './WishlistDrawer.css';
 
 const CartDrawer = ({ cart, setCart, onClose, user, directCheckout }) => {
@@ -8,7 +9,29 @@ const CartDrawer = ({ cart, setCart, onClose, user, directCheckout }) => {
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
 
+  // New states for billing setup
+  const [deliveryConfig, setDeliveryConfig] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState('COD'); // 'COD' or 'ONLINE'
+
   const cartTotal = cart.reduce((total, item) => total + (item.product_price * item.quantity), 0);
+
+  useEffect(() => {
+    if (isCheckingOut) {
+      fetchDeliveryConfig();
+    }
+  }, [isCheckingOut]);
+
+  const fetchDeliveryConfig = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/delivery-charge');
+      if (res.ok) {
+        const data = await res.json();
+        setDeliveryConfig(data);
+      }
+    } catch (error) {
+      console.error('Error fetching delivery config:', error);
+    }
+  };
 
   const updateQuantity = (product_id, delta) => {
     setCart(cart.map(item => {
@@ -25,9 +48,33 @@ const CartDrawer = ({ cart, setCart, onClose, user, directCheckout }) => {
     if (cart.length === 1) setIsCheckingOut(false);
   };
 
+  // Derive computations
+  const cgstAmount = Number((cartTotal * 0.025).toFixed(2));
+  const sgstAmount = Number((cartTotal * 0.025).toFixed(2));
+
+  let deliveryChargeAmount = 0;
+  if (deliveryConfig && user?.pincode) {
+    const pin = String(user.pincode).trim();
+    if (pin === '360001') deliveryChargeAmount = Number(deliveryConfig.charge_360001);
+    else if (pin === '360002') deliveryChargeAmount = Number(deliveryConfig.charge_360002);
+    else if (pin === '360003') deliveryChargeAmount = Number(deliveryConfig.charge_360003);
+    else if (pin === '360004') deliveryChargeAmount = Number(deliveryConfig.charge_360004);
+  }
+
+  const finalTotalAmount = cartTotal + cgstAmount + sgstAmount + deliveryChargeAmount;
+
+  // Setup UPI payload
+  const upiId = deliveryConfig?.upi_id || '';
+  const upiString = `upi://pay?pa=${upiId}&pn=Dharti%20Oil&am=${finalTotalAmount}&cu=INR`;
+
   const placeOrder = async () => {
     if (!shippingAddress.trim() || !contactNumber.trim()) {
       alert("Please provide a shipping address and contact number.");
+      return;
+    }
+    
+    if (paymentMethod === 'ONLINE' && !upiId) {
+      alert("Online payment is not configured by the admin yet. Please select Cash on Delivery.");
       return;
     }
 
@@ -41,9 +88,13 @@ const CartDrawer = ({ cart, setCart, onClose, user, directCheckout }) => {
         body: JSON.stringify({
           user_id: user.user_id,
           items: cart,
-          total_amount: cartTotal,
+          total_amount: finalTotalAmount,
           shipping_address: shippingAddress,
-          contact_number: contactNumber
+          contact_number: contactNumber,
+          payment_method: paymentMethod,
+          delivery_charge: deliveryChargeAmount,
+          cgst: cgstAmount,
+          sgst: sgstAmount
         })
       });
 
@@ -133,7 +184,7 @@ const CartDrawer = ({ cart, setCart, onClose, user, directCheckout }) => {
               </>
             ) : (
               // Checkout Form
-              <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+              <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
                 <button 
                   onClick={() => setIsCheckingOut(false)} 
                   style={{ background: 'none', border: 'none', color: '#0073e6', cursor: 'pointer', marginBottom: '20px', textAlign: 'left', fontWeight: 'bold', padding: 0 }}
@@ -143,7 +194,7 @@ const CartDrawer = ({ cart, setCart, onClose, user, directCheckout }) => {
                 
                 <h3 style={{ marginBottom: '15px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>Shipping Details</h3>
                 
-                <div style={{ marginBottom: '15px' }}>
+                <div style={{ marginBottom: '10px' }}>
                   <label style={{ display: 'block', fontSize: '0.9rem', marginBottom: '5px', color: '#555' }}>Contact Number</label>
                   <input 
                     type="text" 
@@ -165,21 +216,73 @@ const CartDrawer = ({ cart, setCart, onClose, user, directCheckout }) => {
                   />
                 </div>
 
-                <div style={{ marginTop: 'auto', backgroundColor: '#f9f9f9', padding: '15px', borderRadius: '6px', border: '1px solid #eee' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', color: '#555' }}>
-                    <span>Items ({cart.length}):</span>
-                    <span>₹{cartTotal.toLocaleString()}</span>
+                <h3 style={{ marginBottom: '15px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>Payment Method</h3>
+                <div style={{ display: 'flex', gap: '15px', marginBottom: '20px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+                    <input 
+                      type="radio" 
+                      value="COD" 
+                      checked={paymentMethod === 'COD'} 
+                      onChange={() => setPaymentMethod('COD')} 
+                    />
+                    Cash on Delivery
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+                    <input 
+                      type="radio" 
+                      value="ONLINE" 
+                      checked={paymentMethod === 'ONLINE'} 
+                      onChange={() => setPaymentMethod('ONLINE')} 
+                    />
+                    Online Payment
+                  </label>
+                </div>
+
+                {paymentMethod === 'ONLINE' && (
+                  <div style={{ backgroundColor: '#fff', border: '2px dashed #4caf50', borderRadius: '8px', padding: '15px', marginBottom: '20px', textAlign: 'center' }}>
+                    <h4 style={{ margin: '0 0 10px 0', color: '#2e7d32' }}>Scan to Pay with UPI</h4>
+                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '15px' }}>
+                      Open Google Pay, PhonePe, or Paytm and scan the code below. The amount will be pre-filled automatically!
+                    </p>
+                    {upiId ? (
+                      <div style={{ padding: '10px', background: 'white', display: 'inline-block', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+                         <QRCodeSVG value={upiString} size={150} level="H" />
+                         <div style={{ marginTop: '10px', fontWeight: 'bold', color: '#333' }}>₹{finalTotalAmount.toFixed(2)}</div>
+                      </div>
+                    ) : (
+                      <p style={{ color: 'red' }}>Online Payment is temporarily unavailable (UPI ID missing).</p>
+                    )}
                   </div>
+                )}
+
+                <div style={{ marginTop: 'auto', backgroundColor: '#f9f9f9', padding: '15px', borderRadius: '6px', border: '1px solid #eee' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', color: '#555', fontSize: '0.9rem' }}>
+                    <span>Subtotal ({cart.length} items):</span>
+                    <span>₹{cartTotal.toFixed(2)}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', color: '#555', fontSize: '0.9rem' }}>
+                    <span>CGST (2.5%):</span>
+                    <span>₹{cgstAmount.toFixed(2)}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px', color: '#555', fontSize: '0.9rem' }}>
+                    <span>SGST (2.5%):</span>
+                    <span>₹{sgstAmount.toFixed(2)}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', color: '#555', fontSize: '0.9rem' }}>
+                    <span>Delivery Charge:</span>
+                    <span>₹{deliveryChargeAmount.toFixed(2)}</span>
+                  </div>
+                  <div style={{ borderTop: '1px solid #ddd', margin: '10px 0' }}></div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', fontSize: '1.2rem', fontWeight: 'bold', color: '#333' }}>
-                    <span>Total:</span>
-                    <span>₹{cartTotal.toLocaleString()}</span>
+                    <span>Total Amount:</span>
+                    <span style={{ color: '#27ae60' }}>₹{finalTotalAmount.toFixed(2)}</span>
                   </div>
                   <button 
                     onClick={placeOrder}
                     disabled={isPlacingOrder}
-                    style={{ width: '100%', padding: '14px', backgroundColor: isPlacingOrder ? '#95a5a6' : '#e74c3c', color: 'white', border: 'none', borderRadius: '4px', fontSize: '1rem', fontWeight: 'bold', cursor: isPlacingOrder ? 'not-allowed' : 'pointer' }}
+                    style={{ width: '100%', padding: '14px', backgroundColor: isPlacingOrder ? '#95a5a6' : '#27ae60', color: 'white', border: 'none', borderRadius: '4px', fontSize: '1rem', fontWeight: 'bold', cursor: isPlacingOrder ? 'not-allowed' : 'pointer', transition: 'background 0.3s' }}
                   >
-                    {isPlacingOrder ? 'PLACING ORDER...' : 'CONFIRM & PLACE ORDER'}
+                    {isPlacingOrder ? 'PROCESSING...' : 'CONFIRM & PLACE ORDER'}
                   </button>
                 </div>
               </div>

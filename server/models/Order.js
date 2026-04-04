@@ -26,6 +26,22 @@ const Order = sequelize.define('Order', {
   contact_number: {
     type: DataTypes.STRING,
     allowNull: true,
+  },
+  payment_method: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
+  delivery_charge: {
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 0,
+  },
+  cgst: {
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 0,
+  },
+  sgst: {
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 0,
   }
 }, {
   tableName: 'orders',

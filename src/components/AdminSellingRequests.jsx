@@ -174,8 +174,9 @@ const AdminSellingRequests = () => {
 
   const filteredRequests = requests.filter(req => {
     if (activeTab === 'pending') return ['Pending', 'Accepted'].includes(req.status);
-    if (activeTab === 'scheduled') return ['Scheduled', 'Reached', 'BrokerRejected'].includes(req.status);
-    if (activeTab === 'completed') return ['Completed', 'AdminRejected', 'BrokerRejectionConfirmed'].includes(req.status);
+    if (activeTab === 'scheduled') return ['Scheduled', 'Reached'].includes(req.status);
+    if (activeTab === 'completed') return ['Completed'].includes(req.status);
+    if (activeTab === 'rejected') return ['AdminRejected', 'BrokerRejected', 'BrokerRejectionConfirmed'].includes(req.status);
     return true;
   });
 
@@ -199,10 +200,13 @@ const AdminSellingRequests = () => {
           ⏳ Pending ({requests.filter(r => ['Pending', 'Accepted'].includes(r.status)).length})
         </button>
         <button className={`tab-btn ${activeTab === 'scheduled' ? 'active' : ''}`} onClick={() => setActiveTab('scheduled')}>
-          📅 Scheduled ({requests.filter(r => ['Scheduled', 'Reached', 'BrokerRejected'].includes(r.status)).length})
+          📅 Scheduled ({requests.filter(r => ['Scheduled', 'Reached'].includes(r.status)).length})
         </button>
         <button className={`tab-btn ${activeTab === 'completed' ? 'active' : ''}`} onClick={() => setActiveTab('completed')}>
-          ✅ Completed ({requests.filter(r => ['Completed', 'AdminRejected', 'BrokerRejectionConfirmed'].includes(r.status)).length})
+          ✅ Completed ({requests.filter(r => ['Completed'].includes(r.status)).length})
+        </button>
+        <button className={`tab-btn ${activeTab === 'rejected' ? 'active' : ''}`} onClick={() => setActiveTab('rejected')}>
+          🚫 Rejected ({requests.filter(r => ['AdminRejected', 'BrokerRejected', 'BrokerRejectionConfirmed'].includes(r.status)).length})
         </button>
       </div>
 

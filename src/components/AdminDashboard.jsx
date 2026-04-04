@@ -11,6 +11,7 @@ import AdminGlobalPrice from './AdminGlobalPrice';
 import AdminSellingRequests from './AdminSellingRequests';
 import AdminUsersList from './AdminUsersList';
 import AdminOrdersList from './AdminOrdersList';
+import AdminDeliveryCharge from './AdminDeliveryCharge';
 import './AdminDashboard.css';
 
 const AdminDashboard = ({ user, onLogout }) => {
@@ -85,6 +86,12 @@ const AdminDashboard = ({ user, onLogout }) => {
             Update Home Page Images
           </li>
           <li 
+            className={activeTab === 'deliveryCharge' ? 'active' : ''} 
+            onClick={() => setActiveTab('deliveryCharge')}
+          >
+            Delivery & Payment Settings
+          </li>
+          <li 
             className={activeTab === 'updateShopDetails' ? 'active' : ''} 
             onClick={() => setActiveTab('updateShopDetails')}
           >
@@ -139,6 +146,8 @@ const AdminDashboard = ({ user, onLogout }) => {
              <AdminContactForm />
           ) : activeTab === 'contactInquiries' ? (
              <AdminContactInquiries />
+          ) : activeTab === 'deliveryCharge' ? (
+             <AdminDeliveryCharge />
           ) : activeTab === 'brokers' ? (
              <AdminBrokerForm />
           ) : activeTab === 'globalPrice' ? (

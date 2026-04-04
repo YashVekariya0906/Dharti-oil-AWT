@@ -15,6 +15,7 @@ const SellingRequest = require('./SellingRequest');
 const GlobalPrice = require('./GlobalPrice');
 const Order = require('./Order');
 const OrderItem = require('./OrderItem');
+const DeliveryCharge = require('./DeliveryCharge');
 
 // Define Relationships
 // SellingRequest belongs to User
@@ -66,5 +67,6 @@ module.exports = {
   GlobalPrice,
   Order,
   OrderItem,
+  DeliveryCharge,
   syncDatabase
 };

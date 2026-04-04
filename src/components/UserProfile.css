@@ -30,7 +30,7 @@
   align-items: center;
   padding: 25px;
   border-bottom: 2px solid #f0f0f0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
   color: white;
   position: sticky;
   top: 0;
@@ -86,9 +86,9 @@
 }
 
 .user-profile-tabs .tab-btn.active {
-  color: #667eea;
-  border-bottom-color: #667eea;
-  background: #f0f5ff;
+  color: #4caf50;
+  border-bottom-color: #4caf50;
+  background: #e8f5e9;
 }
 
 .user-profile-tabs .tab-btn:hover:not(.active) {
@@ -159,7 +159,7 @@
   margin-top: 20px;
   width: 100%;
   padding: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -170,7 +170,7 @@
 
 .edit-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
 }
 
 /* Profile Edit Form */
@@ -202,8 +202,8 @@
 
 .form-group .animated-input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #4caf50;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
 }
 
 .form-group .animated-input.disabled {
@@ -291,7 +291,7 @@
 
 .submit-btn {
   padding: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -303,7 +303,7 @@
 
 .submit-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
 }
 
 .submit-btn:disabled {
@@ -375,8 +375,8 @@
 
 .otp-modal .animated-input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #4caf50;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
 }
 
 .otp-actions {
@@ -388,7 +388,7 @@
 .verify-btn {
   flex: 1;
   padding: 10px;
-  background: #667eea;
+  background: #4caf50;
   color: white;
   border: none;
   border-radius: 6px;
@@ -398,7 +398,7 @@
 }
 
 .verify-btn:hover {
-  background: #5568d3;
+  background: #388e3c;
   transform: translateY(-2px);
 }
 
