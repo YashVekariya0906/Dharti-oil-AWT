@@ -12,6 +12,7 @@ import AdminSellingRequests from './AdminSellingRequests';
 import AdminUsersList from './AdminUsersList';
 import AdminOrdersList from './AdminOrdersList';
 import AdminDeliveryCharge from './AdminDeliveryCharge';
+import AdminAboutUs from './AdminAboutUs';
 import './AdminDashboard.css';
 
 const AdminDashboard = ({ user, onLogout }) => {
@@ -109,6 +110,12 @@ const AdminDashboard = ({ user, onLogout }) => {
           >
             Update Footer
           </li>
+          <li 
+            className={activeTab === 'aboutUs' ? 'active' : ''} 
+            onClick={() => setActiveTab('aboutUs')}
+          >
+            About Us Page
+          </li>
 
           <li className="nav-section-title">Support</li>
           <li 
@@ -158,6 +165,8 @@ const AdminDashboard = ({ user, onLogout }) => {
              <AdminOrdersList />
           ) : activeTab === 'usersList' ? (
              <AdminUsersList />
+          ) : activeTab === 'aboutUs' ? (
+             <AdminAboutUs />
           ) : null}
         </div>
       </main>

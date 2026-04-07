@@ -10,6 +10,7 @@ import Footer from './components/Footer'
 import InfoPage from './components/InfoPage'
 import Blog from './components/Blog'
 import ContactUs from './components/ContactUs'
+import AboutUsSection from './components/AboutUsSection'
 import WishlistDrawer from './components/WishlistDrawer'
 import CartDrawer from './components/CartDrawer'
 import { FaHeart, FaShoppingBag, FaInfoCircle } from 'react-icons/fa';
@@ -33,6 +34,7 @@ function App() {
   const [selectedProductInfo, setSelectedProductInfo] = useState(null);
   const [showBlog, setShowBlog] = useState(false);
   const [showContact, setShowContact] = useState(false);
+  const [showAboutUs, setShowAboutUs] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [wishlist, setWishlist] = useState([]);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
@@ -107,6 +109,7 @@ function App() {
       localStorage.removeItem('redirectAfterAuth');
       setShowContact(true);
       setShowBlog(false);
+      setShowAboutUs(false);
       setSelectedProductInfo(null);
     }
     
@@ -188,6 +191,7 @@ function App() {
     setShowRegister(false);
     setShowBlog(false);
     setShowContact(false);
+    setShowAboutUs(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -249,6 +253,8 @@ function App() {
     activePage = 'blog';
   } else if (showContact) {
     activePage = 'contact';
+  } else if (showAboutUs) {
+    activePage = 'about';
   }
 
   return (
@@ -289,11 +295,20 @@ function App() {
             onBlogClick={() => {
               setShowBlog(true);
               setShowContact(false);
+              setShowAboutUs(false);
               setSelectedProductInfo(null);
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             onContactClick={() => {
               setShowContact(true);
+              setShowBlog(false);
+              setShowAboutUs(false);
+              setSelectedProductInfo(null);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onAboutClick={() => {
+              setShowAboutUs(true);
+              setShowContact(false);
               setShowBlog(false);
               setSelectedProductInfo(null);
               window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -339,6 +354,8 @@ function App() {
               <Blog />
             ) : showContact ? (
               <ContactUs user={user} onRequireLogin={() => setShowLogin(true)} />
+            ) : showAboutUs ? (
+              <AboutUsSection />
             ) : (
               <>
                 <ImageSlider images={[navbarData.I1_path, navbarData.I2_path, navbarData.I3_path, navbarData.I4_path, navbarData.I5_path].filter(Boolean)} />

@@ -16,6 +16,8 @@ const GlobalPrice = require('./GlobalPrice');
 const Order = require('./Order');
 const OrderItem = require('./OrderItem');
 const DeliveryCharge = require('./DeliveryCharge');
+const AboutUs = require('./AboutUs');
+const AboutUsMember = require('./AboutUsMember');
 
 // Define Relationships
 // SellingRequest belongs to User
@@ -42,11 +44,22 @@ Product.hasMany(OrderItem, { foreignKey: 'product_id', as: 'order_items' });
 
 // Sync database (create tables automatically)
 const syncDatabase = async () => {
+  // First try alter mode (updates existing schemas)
   try {
-    await sequelize.sync({ alter: true }); // Use { force: true } to drop and recreate tables
-    console.log('Database synchronized successfully!');
-  } catch (error) {
-    console.error('Error synchronizing database:', error);
+    await sequelize.sync({ alter: true });
+    console.log('Database synchronized successfully (alter mode)!');
+    return;
+  } catch (alterError) {
+    console.warn('Alter sync failed (likely ER_TOO_MANY_KEYS on existing table). Falling back to basic sync...');
+  }
+
+  // Fallback: basic sync — creates any new tables that don't exist yet,
+  // but does NOT alter existing tables (safe for production data)
+  try {
+    await sequelize.sync();
+    console.log('Database synchronized successfully (basic mode — new tables created)!');
+  } catch (syncError) {
+    console.error('Error synchronizing database (basic mode):', syncError.message);
   }
 };
 
@@ -68,5 +81,7 @@ module.exports = {
   Order,
   OrderItem,
   DeliveryCharge,
+  AboutUs,
+  AboutUsMember,
   syncDatabase
 };
