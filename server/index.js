@@ -5,7 +5,7 @@ const nodemailer = require('nodemailer');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { SiteConfig, Navbar, Product, User, FooterSettings, ShopDetails, Blog, ContactDetails, ContactInquiry, SellingRequest, GlobalPrice, Order, OrderItem, DeliveryCharge, syncDatabase, sequelize } = require('./models');
+const { SiteConfig, Navbar, Product, User, FooterSettings, ShopDetails, Blog, ContactDetails, ContactInquiry, SellingRequest, GlobalPrice, Order, OrderItem, DeliveryCharge, AboutUs, AboutUsMember, syncDatabase, sequelize } = require('./models');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const storage = multer.diskStorage({
@@ -1999,6 +1999,177 @@ app.get('/api/users/:id/orders', async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
     res.json(orders);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ========================================
+// ABOUT US API ROUTES
+// ========================================
+
+// Setup multer for about us images
+const aboutUsStorage = multer.diskStorage({
+  destination: function (req, file, cb) { cb(null, 'uploads/'); },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname);
+    cb(null, `about_${file.fieldname}_${Date.now()}${ext}`);
+  }
+});
+const aboutUsUpload = multer({ storage: aboutUsStorage });
+
+const aboutUsFields = [
+  { name: 'about_banner_image', maxCount: 1 },
+  { name: 'about_intro_image', maxCount: 1 },
+  { name: 'infra_image_1', maxCount: 1 },
+  { name: 'infra_image_2', maxCount: 1 },
+  { name: 'infra_image_3', maxCount: 1 },
+  { name: 'infra_image_4', maxCount: 1 },
+  { name: 'infra_image_5', maxCount: 1 },
+  { name: 'infra_image_6', maxCount: 1 }
+];
+
+// GET about us data
+app.get('/api/about-us', async (req, res) => {
+  try {
+    let aboutUs = await AboutUs.findOne();
+    if (!aboutUs) {
+      aboutUs = await AboutUs.create({
+        company_intro: '',
+        infra_title: 'Infrastructure',
+        infra_description: '',
+        mgmt_title: 'Management Behind Dharti Amrut',
+        faq_data: '[]'
+      });
+    }
+    const raw = aboutUs.toJSON();
+    // parse faq_data if it's a string
+    if (typeof raw.faq_data === 'string') {
+      try { raw.faq_data = JSON.parse(raw.faq_data); } catch { raw.faq_data = []; }
+    }
+    res.json(raw);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST update about us (banner + infra images)
+app.post('/api/about-us/update', aboutUsUpload.fields(aboutUsFields), async (req, res) => {
+  try {
+    let aboutUs = await AboutUs.findOne();
+
+    const buildUrl = (fieldName) => {
+      if (req.files && req.files[fieldName]) {
+        return 'http://localhost:5000/uploads/' + req.files[fieldName][0].filename;
+      }
+      return req.body[fieldName] || null;
+    };
+
+    const data = {
+      company_intro: req.body.company_intro || '',
+      about_banner_image: buildUrl('about_banner_image'),
+      about_intro_image: buildUrl('about_intro_image'),
+      infra_title: req.body.infra_title || 'Infrastructure',
+      infra_description: req.body.infra_description || '',
+      infra_image_1: buildUrl('infra_image_1'),
+      infra_image_2: buildUrl('infra_image_2'),
+      infra_image_3: buildUrl('infra_image_3'),
+      infra_image_4: buildUrl('infra_image_4'),
+      infra_image_5: buildUrl('infra_image_5'),
+      infra_image_6: buildUrl('infra_image_6'),
+      mgmt_title: req.body.mgmt_title || 'Management Behind Dharti Amrut',
+      faq_data: req.body.faq_data || '[]'
+    };
+
+    if (aboutUs) {
+      await AboutUs.update(data, { where: { id: aboutUs.id } });
+      res.json({ message: 'About Us updated successfully' });
+    } else {
+      await AboutUs.create(data);
+      res.json({ message: 'About Us created successfully' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE a specific infra image
+app.post('/api/about-us/delete-image', async (req, res) => {
+  try {
+    const { field } = req.body;
+    const allowed = ['about_banner_image','about_intro_image','infra_image_1','infra_image_2','infra_image_3','infra_image_4','infra_image_5','infra_image_6'];
+    if (!allowed.includes(field)) return res.status(400).json({ message: 'Invalid field' });
+    const aboutUs = await AboutUs.findOne();
+    if (!aboutUs) return res.status(404).json({ message: 'Not found' });
+    if (aboutUs[field]) {
+      const filename = aboutUs[field].split('/').pop();
+      const filepath = path.join(__dirname, 'uploads', filename);
+      if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
+    }
+    await AboutUs.update({ [field]: null }, { where: { id: aboutUs.id } });
+    res.json({ message: 'Image deleted' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET management members
+app.get('/api/about-us/members', async (req, res) => {
+  try {
+    const members = await AboutUsMember.findAll({ order: [['sort_order', 'ASC'], ['id', 'ASC']] });
+    res.json(members);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// POST add management member
+app.post('/api/about-us/members', aboutUsUpload.single('member_image'), async (req, res) => {
+  try {
+    const { name, designation, bio, sort_order } = req.body;
+    if (!name || !designation) return res.status(400).json({ message: 'Name and designation are required' });
+    const member_image = req.file ? 'http://localhost:5000/uploads/' + req.file.filename : null;
+    const member = await AboutUsMember.create({
+      name,
+      designation,
+      bio: bio || '',
+      member_image,
+      sort_order: sort_order ? parseInt(sort_order) : 0
+    });
+    res.status(201).json({ message: 'Member added', member });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// PUT update management member
+app.put('/api/about-us/members/:id', aboutUsUpload.single('member_image'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, designation, bio, sort_order, existing_image } = req.body;
+    const member_image = req.file ? 'http://localhost:5000/uploads/' + req.file.filename : (existing_image || null);
+    await AboutUsMember.update(
+      { name, designation, bio: bio || '', member_image, sort_order: sort_order ? parseInt(sort_order) : 0 },
+      { where: { id } }
+    );
+    res.json({ message: 'Member updated' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE management member
+app.delete('/api/about-us/members/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const member = await AboutUsMember.findByPk(id);
+    if (member && member.member_image) {
+      const filename = member.member_image.split('/').pop();
+      const filepath = path.join(__dirname, 'uploads', filename);
+      if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
+    }
+    await AboutUsMember.destroy({ where: { id } });
+    res.json({ message: 'Member deleted' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
