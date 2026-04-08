@@ -10,7 +10,7 @@ async function createInitialBlogPost() {
     });
 
     if (existingBlog) {
-      console.log('✅ Blog post already exists, skipping creation');
+      console.log('  Blog post already exists, skipping creation');
       return;
     }
 
@@ -107,7 +107,7 @@ Storage conditions
 
 With Dharati Amrut, you can be assured of freshness and quality in every pack.
 
-✅ Final Thoughts
+  Final Thoughts
 
 Choosing the right cooking oil is not just about price — it's about health, taste, and trust.
 
@@ -128,12 +128,12 @@ Whether you choose 1 litre or 15 kg, you are choosing quality you can rely on.`;
       status: 'published'
     });
 
-    console.log('✅ Initial blog post created successfully!');
-    console.log('📝 Blog ID:', blog.id);
+    console.log('  Initial blog post created successfully!');
+    console.log('  Blog ID:', blog.id);
     console.log('🔗 Slug:', blog.slug);
 
   } catch (error) {
-    console.error('❌ Error creating initial blog post:', error);
+    console.error('  Error creating initial blog post:', error);
   }
 }
 

@@ -18,6 +18,8 @@ const OrderItem = require('./OrderItem');
 const DeliveryCharge = require('./DeliveryCharge');
 const AboutUs = require('./AboutUs');
 const AboutUsMember = require('./AboutUsMember');
+const OilCakePrice = require('./OilCakePrice');
+const OilCakeRequest = require('./OilCakeRequest');
 
 // Define Relationships
 // SellingRequest belongs to User
@@ -42,6 +44,10 @@ OrderItem.belongsTo(Order, { foreignKey: 'order_id', as: 'order' });
 OrderItem.belongsTo(Product, { foreignKey: 'product_id', as: 'product' });
 Product.hasMany(OrderItem, { foreignKey: 'product_id', as: 'order_items' });
 
+// OilCakeRequest Relationships
+OilCakeRequest.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+User.hasMany(OilCakeRequest, { foreignKey: 'user_id', as: 'oil_cake_requests' });
+
 // Sync database (create tables automatically)
 const syncDatabase = async () => {
   // Manual migration for payment_proof column
@@ -53,6 +59,49 @@ const syncDatabase = async () => {
     }
   } catch (err) {
     console.log('Manual column addition skipped or failed:', err.message);
+  }
+
+  // Manual creation of oil_cake_price table
+  try {
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS \`oil_cake_price\` (
+        \`id\` INT NOT NULL AUTO_INCREMENT,
+        \`price_per_kg\` DECIMAL(10,2) NOT NULL DEFAULT 0,
+        \`min_quantity_kg\` DECIMAL(10,2) NOT NULL DEFAULT 20,
+        \`is_available\` TINYINT(1) NOT NULL DEFAULT 1,
+        \`created_at\` DATETIME NOT NULL,
+        \`updated_at\` DATETIME NOT NULL,
+        PRIMARY KEY (\`id\`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+    console.log('oil_cake_price table ensured.');
+  } catch (err) {
+    console.log('oil_cake_price table creation skipped:', err.message);
+  }
+
+  // Manual creation of oil_cake_requests table
+  try {
+    await sequelize.query(`
+      CREATE TABLE IF NOT EXISTS \`oil_cake_requests\` (
+        \`id\` INT NOT NULL AUTO_INCREMENT,
+        \`user_id\` INT NOT NULL,
+        \`quantity_kg\` DECIMAL(10,2) NOT NULL,
+        \`price_per_kg\` DECIMAL(10,2) NOT NULL,
+        \`total_amount\` DECIMAL(10,2) NOT NULL,
+        \`delivery_address\` TEXT NULL,
+        \`contact_number\` VARCHAR(15) NOT NULL,
+        \`notes\` TEXT NULL,
+        \`status\` ENUM('Pending','Confirmed','Processing','Delivered','Cancelled','Rejected') NOT NULL DEFAULT 'Pending',
+        \`admin_note\` TEXT NULL,
+        \`created_at\` DATETIME NOT NULL,
+        \`updated_at\` DATETIME NOT NULL,
+        PRIMARY KEY (\`id\`),
+        KEY \`fk_oilcake_user\` (\`user_id\`)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+    console.log('oil_cake_requests table ensured.');
+  } catch (err) {
+    console.log('oil_cake_requests table creation skipped:', err.message);
   }
 
   // First try alter mode (updates existing schemas)
@@ -94,5 +143,7 @@ module.exports = {
   DeliveryCharge,
   AboutUs,
   AboutUsMember,
+  OilCakePrice,
+  OilCakeRequest,
   syncDatabase
 };

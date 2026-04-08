@@ -76,7 +76,7 @@ const AdminSellingRequests = () => {
       });
       const data = await res.json();
       if (res.ok) {
-        setMessage('✅ Broker assigned successfully!');
+        setMessage('  Broker assigned successfully!');
         setSelectedBroker(broker);
         setTimeout(() => {
           fetchSellingRequests();
@@ -85,10 +85,10 @@ const AdminSellingRequests = () => {
           setMessage('');
         }, 1500);
       } else {
-        setMessage('❌ ' + (data?.message || data?.error || 'Failed to assign broker'));
+        setMessage('  ' + (data?.message || data?.error || 'Failed to assign broker'));
       }
     } catch (error) {
-      setMessage('❌ Assignment error: ' + error.message);
+      setMessage('  Assignment error: ' + error.message);
     }
   };
 
@@ -117,16 +117,16 @@ const AdminSellingRequests = () => {
       });
       const data = await res.json();
       if (res.ok) {
-        setRejectMsg('✅ Request rejected successfully.');
+        setRejectMsg('  Request rejected successfully.');
         setTimeout(() => {
           setRejectModalRequestId(null);
           fetchSellingRequests();
         }, 1200);
       } else {
-        setRejectMsg('❌ ' + (data.message || 'Failed to reject.'));
+        setRejectMsg('  ' + (data.message || 'Failed to reject.'));
       }
     } catch (err) {
-      setRejectMsg('❌ Error: ' + err.message);
+      setRejectMsg('  Error: ' + err.message);
     } finally {
       setRejectLoading(false);
     }
@@ -203,7 +203,7 @@ const AdminSellingRequests = () => {
           📅 Scheduled ({requests.filter(r => ['Scheduled', 'Reached'].includes(r.status)).length})
         </button>
         <button className={`tab-btn ${activeTab === 'completed' ? 'active' : ''}`} onClick={() => setActiveTab('completed')}>
-          ✅ Completed ({requests.filter(r => ['Completed'].includes(r.status)).length})
+          Completed ({requests.filter(r => ['Completed'].includes(r.status)).length})
         </button>
         <button className={`tab-btn ${activeTab === 'rejected' ? 'active' : ''}`} onClick={() => setActiveTab('rejected')}>
           🚫 Rejected ({requests.filter(r => ['AdminRejected', 'BrokerRejected', 'BrokerRejectionConfirmed'].includes(r.status)).length})
@@ -243,7 +243,7 @@ const AdminSellingRequests = () => {
                       <span className={`status-badge status-${req.status?.toLowerCase().replace(/[^a-z]/g, '-')}`} style={{ margin: 0 }}>
                         {req.status === 'AdminRejected' ? '🚫 Admin Rejected'
                           : req.status === 'BrokerRejected' ? '⚠️ Broker Rejected'
-                            : req.status === 'BrokerRejectionConfirmed' ? '❌ Rejection Confirmed'
+                            : req.status === 'BrokerRejectionConfirmed' ? '  Rejection Confirmed'
                               : req.status}
                       </span>
                     )}
@@ -277,7 +277,7 @@ const AdminSellingRequests = () => {
                     <span className="value">{req.payment_method || 'Cash'}</span>
                   </div>
                   <div className="info-row">
-                    <span className="label">💰 Customer Price:</span>
+                    <span className="label">  Customer Price:</span>
                     <span className="value">₹{req.customer_price}</span>
                   </div>
                   <div className="info-row">
@@ -368,7 +368,7 @@ const AdminSellingRequests = () => {
                   {/* Broker Rejection Confirmed Info */}
                   {req.status === 'BrokerRejectionConfirmed' && (
                     <div className="rejection-info-box broker-confirmed-box">
-                      <strong>❌ Rejection Forwarded to User</strong>
+                      <strong>  Rejection Forwarded to User</strong>
                       <p><span className="rj-label">Broker Reason:</span> {req.broker_reject_reason}</p>
                       {req.broker_reject_comment && (
                         <p><span className="rj-label">Comment:</span> {req.broker_reject_comment}</p>
@@ -379,7 +379,7 @@ const AdminSellingRequests = () => {
                   {/* Completed visit report */}
                   {req.is_visited && req.status === 'Completed' && (
                     <div className="visit-report-box">
-                      <strong>📝 Visit Report</strong>
+                      <strong>  Visit Report</strong>
                       <p><strong>Final Deal Price:</strong> ₹{req.final_price ?? 'N/A'}</p>
                       <p><strong>Delivered:</strong> {req.delivered_quantity ?? 'N/A'}</p>
                       <p><strong>Broker note:</strong> {req.broker_comments || 'No remarks'}</p>
@@ -401,7 +401,7 @@ const AdminSellingRequests = () => {
                         } catch { return null; }
                         return null;
                       })()}
-                      
+
                       {req.payment_method === 'Cheque' ? (
                         req.payment_proof && (
                           <div style={{ marginTop: '15px', background: '#f8f9fa', padding: '10px', borderRadius: '5px' }}>
@@ -438,7 +438,7 @@ const AdminSellingRequests = () => {
             </div>
             <p className="modal-subtitle">Please provide a reason for rejecting this request. The user will see this message.</p>
             {rejectMsg && (
-              <div className={`msg ${rejectMsg.includes('✅') ? 'success' : 'error'}`}>{rejectMsg}</div>
+              <div className={`msg ${rejectMsg.includes(' ') ? 'success' : 'error'}`}>{rejectMsg}</div>
             )}
             <div className="form-group">
               <label>Reason <span style={{ color: 'red' }}>*</span></label>
@@ -485,7 +485,7 @@ const AdminSellingRequests = () => {
           </div>
 
           {message && (
-            <div className={`msg ${message.includes('✅') ? 'success' : 'error'}`}>{message}</div>
+            <div className={`msg ${message.includes(' ') ? 'success' : 'error'}`}>{message}</div>
           )}
 
           <div className="broker-search-info">
@@ -494,7 +494,7 @@ const AdminSellingRequests = () => {
 
           {brokersByPincode.length === 0 ? (
             <div className="no-brokers">
-              <p>❌ No verified brokers found for pincode {selectedRequest.user?.pincode}</p>
+              <p>  No verified brokers found for pincode {selectedRequest.user?.pincode}</p>
             </div>
           ) : (
             <div className="brokers-list">

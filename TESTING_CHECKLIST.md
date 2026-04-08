@@ -51,7 +51,7 @@
   - [ ] Stock per mound value
   - [ ] Customer price value
   - [ ] Our price value
-  - [ ] Status badge: ✅ Accepted or 📅 Scheduled
+  - [ ] Status badge:   Accepted or 📅 Scheduled
 - [ ] If scheduled, shows:
   - [ ] "Scheduled on: [DATE]"
   - [ ] "Visit time: [TIME]"

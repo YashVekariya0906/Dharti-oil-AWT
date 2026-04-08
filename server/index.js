@@ -6,7 +6,7 @@ const nodemailer = require('nodemailer');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { SiteConfig, Navbar, Product, User, FooterSettings, ShopDetails, Blog, ContactDetails, ContactInquiry, SellingRequest, GlobalPrice, Order, OrderItem, DeliveryCharge, AboutUs, AboutUsMember, syncDatabase, sequelize } = require('./models');
+const { SiteConfig, Navbar, Product, User, FooterSettings, ShopDetails, Blog, ContactDetails, ContactInquiry, SellingRequest, GlobalPrice, Order, OrderItem, DeliveryCharge, AboutUs, AboutUsMember, OilCakePrice, OilCakeRequest, syncDatabase, sequelize } = require('./models');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const storage = multer.diskStorage({
@@ -759,7 +759,7 @@ app.post('/api/admin/brokers', async (req, res) => {
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpiry = Date.now() + 10 * 60 * 1000; // 10 min timestamp
 
-    // ✅ Save ONLY in memory — NO DB record yet
+    //   Save ONLY in memory — NO DB record yet
     pendingBrokers.set(emali, {
       username,
       moblie_no,
@@ -849,7 +849,7 @@ app.post('/api/admin/brokers/verify-otp', async (req, res) => {
       return res.status(400).json({ message: 'OTP has expired. Please refill the broker form to get a new OTP.' });
     }
 
-    // ✅ OTP verified — NOW create the broker record in DB as Active
+    //   OTP verified — NOW create the broker record in DB as Active
     const broker = await User.create({
       username: pending.username,
       moblie_no: pending.moblie_no,
@@ -864,7 +864,7 @@ app.post('/api/admin/brokers/verify-otp', async (req, res) => {
 
     pendingBrokers.delete(normalizedEmail); // clean up memory
 
-    console.log(`✅ Broker ${broker.username} (${broker.emali}) successfully added to DB after OTP verification.`);
+    console.log(`  Broker ${broker.username} (${broker.emali}) successfully added to DB after OTP verification.`);
     res.status(200).json({ message: 'Broker verified and added successfully!', broker });
   } catch (error) {
     console.error('Error verifying broker OTP:', error);
@@ -932,7 +932,7 @@ app.post('/api/admin/global-price', async (req, res) => {
       return res.status(400).json({ message: 'Current price is required' });
     }
 
-    console.log('📝 Updating global price to:', current_price);
+    console.log('  Updating global price to:', current_price);
 
     let globalPrice = await GlobalPrice.findOne();
     if (globalPrice) {
@@ -1054,7 +1054,7 @@ app.put('/api/brokers/selling-requests/:id/report', reportUpload.fields([{ name:
       const newPhotos = req.files.sample_photos.map(file => 'http://localhost:5000/uploads/reports/' + file.filename);
       samplePhotos = [...samplePhotos, ...newPhotos];
     }
-    
+
     let paymentProofUrl = request.payment_proof || null;
     if (req.files && req.files.payment_proof && req.files.payment_proof.length > 0) {
       paymentProofUrl = 'http://localhost:5000/uploads/reports/' + req.files.payment_proof[0].filename;
@@ -2204,6 +2204,120 @@ app.delete('/api/about-us/members/:id', async (req, res) => {
 // Catch-all route to test if server is alive
 app.get('/', (req, res) => {
   res.send('Dharti Oil Backend API is running!');
+});
+
+// ===== OIL CAKE PRICE MANAGEMENT =====
+
+// GET current oil cake price (public)
+app.get('/api/oil-cake/price', async (req, res) => {
+  try {
+    let priceRecord = await OilCakePrice.findOne({ where: { id: 1 } });
+    if (!priceRecord) {
+      priceRecord = await OilCakePrice.create({ id: 1, price_per_kg: 0, min_quantity_kg: 20, is_available: false });
+    }
+    res.json(priceRecord);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT update oil cake price (admin)
+app.put('/api/admin/oil-cake/price', async (req, res) => {
+  try {
+    const { price_per_kg, min_quantity_kg, is_available } = req.body;
+    let priceRecord = await OilCakePrice.findOne({ where: { id: 1 } });
+    if (!priceRecord) {
+      priceRecord = await OilCakePrice.create({ id: 1, price_per_kg, min_quantity_kg: min_quantity_kg || 20, is_available: is_available !== undefined ? is_available : true });
+    } else {
+      await priceRecord.update({
+        price_per_kg: price_per_kg !== undefined ? price_per_kg : priceRecord.price_per_kg,
+        min_quantity_kg: min_quantity_kg !== undefined ? min_quantity_kg : priceRecord.min_quantity_kg,
+        is_available: is_available !== undefined ? is_available : priceRecord.is_available
+      });
+    }
+    res.json({ message: 'Oil cake price updated successfully.', priceRecord });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ===== OIL CAKE REQUESTS =====
+
+// POST create a new oil cake purchase request (user)
+app.post('/api/oil-cake/requests', async (req, res) => {
+  try {
+    const { user_id, quantity_kg, delivery_address, contact_number, notes } = req.body;
+    if (!user_id || !quantity_kg || !contact_number) {
+      return res.status(400).json({ message: 'Missing required fields (User ID, Quantity, or Contact Number).' });
+    }
+
+    const priceRecord = await OilCakePrice.findOne({ where: { id: 1 } });
+    if (!priceRecord || !priceRecord.is_available) {
+      return res.status(400).json({ message: 'Oil Cake is not available for purchase right now.' });
+    }
+
+    const minQty = parseFloat(priceRecord.min_quantity_kg) || 20;
+    if (parseFloat(quantity_kg) < minQty) {
+      return res.status(400).json({ message: `Minimum order quantity is ${minQty} KG.` });
+    }
+
+    const price_per_kg = parseFloat(priceRecord.price_per_kg);
+    const total_amount = price_per_kg * parseFloat(quantity_kg);
+
+    const request = await OilCakeRequest.create({
+      user_id,
+      quantity_kg: parseFloat(quantity_kg),
+      price_per_kg,
+      total_amount,
+      delivery_address,
+      contact_number,
+      notes: notes || null,
+      status: 'Pending'
+    });
+
+    res.json({ message: 'Oil cake purchase request submitted successfully!', request });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET all oil cake requests for a specific user
+app.get('/api/oil-cake/requests/user/:user_id', async (req, res) => {
+  try {
+    const requests = await OilCakeRequest.findAll({
+      where: { user_id: req.params.user_id },
+      order: [['created_at', 'DESC']]
+    });
+    res.json(requests);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET all oil cake requests (admin)
+app.get('/api/admin/oil-cake/requests', async (req, res) => {
+  try {
+    const requests = await OilCakeRequest.findAll({
+      include: [{ model: User, as: 'user', attributes: ['username', 'emali', 'moblie_no'] }],
+      order: [['created_at', 'DESC']]
+    });
+    res.json(requests);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT update status of oil cake request (admin)
+app.put('/api/admin/oil-cake/requests/:id/status', async (req, res) => {
+  try {
+    const { status, admin_note } = req.body;
+    const request = await OilCakeRequest.findByPk(req.params.id);
+    if (!request) return res.status(404).json({ message: 'Request not found.' });
+    await request.update({ status, admin_note: admin_note || request.admin_note });
+    res.json({ message: 'Status updated successfully.', request });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 const PORT = process.env.PORT || 5000;

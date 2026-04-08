@@ -149,15 +149,15 @@ const BrokerDashboard = ({ user, onLogout }) => {
 
       const data = await res.json();
       if (res.ok) {
-        setMessage('✅ Rejection submitted. Admin will review.');
+        setMessage('  Rejection submitted. Admin will review.');
         setBrokerRejectModeId(null);
         setBrokerRejectData({ reason: '', comment: '', photos: [] });
         fetchAssignedRequests();
       } else {
-        setMessage('❌ ' + (data.message || 'Failed to submit rejection.'));
+        setMessage('  ' + (data.message || 'Failed to submit rejection.'));
       }
     } catch (err) {
-      setMessage('❌ Error: ' + err.message);
+      setMessage('  Error: ' + err.message);
     } finally {
       setBrokerRejectLoading(false);
     }
@@ -192,7 +192,7 @@ const BrokerDashboard = ({ user, onLogout }) => {
           className={`tab-btn ${activeTab === 'completed' ? 'active' : ''}`}
           onClick={() => setActiveTab('completed')}
         >
-          ✅ Completed
+          Completed
         </button>
         <button
           className={`tab-btn ${activeTab === 'rejected' ? 'active' : ''}`}
@@ -212,7 +212,7 @@ const BrokerDashboard = ({ user, onLogout }) => {
         {(activeTab === 'requests' || activeTab === 'completed' || activeTab === 'rejected') && (
           <div className="requests-section">
             <h2>{activeTab === 'requests' ? 'Assigned Selling Requests' : activeTab === 'completed' ? 'Completed Requests' : 'Rejected Requests'}</h2>
-            {message && <div className={`msg ${message.includes('✅') || message.includes('success') ? 'success' : 'error'}`}>{message}</div>}
+            {message && <div className={`msg ${message.includes(' ') || message.includes('success') ? 'success' : 'error'}`}>{message}</div>}
 
             {loading ? (
               <p className="loading">Loading...</p>
@@ -263,7 +263,7 @@ const BrokerDashboard = ({ user, onLogout }) => {
                           <span className="value">{req.payment_method || 'Cash'}</span>
                         </div>
                         <div className="detail-row">
-                          <span className="label">💰 Customer Price:</span>
+                          <span className="label">  Customer Price:</span>
                           <span className="value">₹{req.customer_price}</span>
                         </div>
                         <div className="detail-row">
@@ -321,7 +321,7 @@ const BrokerDashboard = ({ user, onLogout }) => {
                               setMessage('');
                             }}
                           >
-                            📝 Report Visit
+                            Report Visit
                           </button>
                           <button
                             className="broker-reject-trigger-btn"
@@ -410,7 +410,7 @@ const BrokerDashboard = ({ user, onLogout }) => {
                       {req.is_visited && req.status === 'Completed' && (
                         <div className="visit-report-box">
                           <p>🟢 Visit completed. Delivered: {req.delivered_quantity ?? 'N/A'}</p>
-                          <p>💰 Final Price: ₹{req.final_price ?? 'N/A'}</p>
+                          <p>  Final Price: ₹{req.final_price ?? 'N/A'}</p>
                           <p>📌 Broker notes: {req.broker_comments || 'No comments'}</p>
                         </div>
                       )}
@@ -450,7 +450,7 @@ const BrokerDashboard = ({ user, onLogout }) => {
                             />
                             <small>You can select multiple photos.</small>
                           </div>
-                          
+
                           {req.payment_method === 'Cheque' ? (
                             <div className="form-group" style={{ background: '#f8f9fa', padding: '10px', borderRadius: '5px', borderLeft: '4px solid #3498db' }}>
                               <label style={{ color: '#2c3e50' }}>Payment Proof (Cheque Photo) <span style={{ color: 'red' }}>*</span></label>

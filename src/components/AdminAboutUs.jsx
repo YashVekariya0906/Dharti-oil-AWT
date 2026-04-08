@@ -123,7 +123,7 @@ const AdminAboutUs = () => {
       const res = await fetch(`${API_BASE}/api/about-us/update`, { method: 'POST', body: fd });
       const body = await res.json();
       if (res.ok) {
-        showMessage('Saved successfully! ✅');
+        showMessage('Saved successfully!  ');
         setBannerFile(null);
         setIntroFile(null);
         setInfraFiles({});
@@ -201,7 +201,7 @@ const AdminAboutUs = () => {
       const body = await res.json();
 
       if (res.ok) {
-        showMessage(editingMember ? 'Member updated! ✅' : 'Member added! ✅');
+        showMessage(editingMember ? 'Member updated!  ' : 'Member added!  ');
         setShowMemberForm(false);
         fetchMembers();
       } else {
@@ -255,7 +255,7 @@ const AdminAboutUs = () => {
       const fd = buildAboutFormData(); // reuses existing data + new FAQ list
       const res = await fetch(`${API_BASE}/api/about-us/update`, { method: 'POST', body: fd });
       const body = await res.json();
-      if (res.ok) showMessage('FAQs saved! ✅');
+      if (res.ok) showMessage('FAQs saved!  ');
       else showMessage(`Failed: ${body.error || body.message}`, 'error');
     } catch (err) {
       showMessage('Network error: ' + err.message, 'error');
@@ -530,7 +530,7 @@ const AdminAboutUs = () => {
                   <div className="aau-modal-actions">
                     <button type="button" className="aau-cancel-btn" onClick={() => setShowMemberForm(false)}>Cancel</button>
                     <button type="submit" className="aau-save-btn" disabled={saving}>
-                      {saving ? 'Saving...' : editingMember ? '💾 Update Member' : '✅ Add Member'}
+                      {saving ? 'Saving...' : editingMember ? '💾 Update Member' : '  Add Member'}
                     </button>
                   </div>
                 </form>
