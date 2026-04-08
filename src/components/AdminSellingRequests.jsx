@@ -243,8 +243,8 @@ const AdminSellingRequests = () => {
                       <span className={`status-badge status-${req.status?.toLowerCase().replace(/[^a-z]/g, '-')}`} style={{ margin: 0 }}>
                         {req.status === 'AdminRejected' ? '🚫 Admin Rejected'
                           : req.status === 'BrokerRejected' ? '⚠️ Broker Rejected'
-                          : req.status === 'BrokerRejectionConfirmed' ? '❌ Rejection Confirmed'
-                          : req.status}
+                            : req.status === 'BrokerRejectionConfirmed' ? '❌ Rejection Confirmed'
+                              : req.status}
                       </span>
                     )}
                   </div>
@@ -271,6 +271,10 @@ const AdminSellingRequests = () => {
                   <div className="info-row">
                     <span className="label">📦 Stock (mound):</span>
                     <span className="value">{req.stock_per_mound}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="label">💳 Payment:</span>
+                    <span className="value">{req.payment_method || 'Cash'}</span>
                   </div>
                   <div className="info-row">
                     <span className="label">💰 Customer Price:</span>

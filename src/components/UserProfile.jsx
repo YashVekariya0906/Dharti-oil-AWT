@@ -395,7 +395,8 @@ const SellingRequestForm = ({ user, onSuccess }) => {
   const [formData, setFormData] = useState({
     stock_per_mound: '',
     customer_price: '',
-    our_price: 0
+    our_price: 0,
+    payment_method: 'Cash'
   });
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -436,14 +437,15 @@ const SellingRequestForm = ({ user, onSuccess }) => {
           user_id: user.user_id,
           stock_per_mound: parseFloat(formData.stock_per_mound),
           customer_price: parseFloat(formData.customer_price),
-          our_price: formData.our_price
+          our_price: formData.our_price,
+          payment_method: formData.payment_method
         })
       });
 
       const data = await res.json();
       if (res.ok) {
         setMessage('Request submitted successfully! Awaiting admin approval.');
-        setFormData({ stock_per_mound: '', customer_price: '', our_price: formData.our_price });
+        setFormData({ stock_per_mound: '', customer_price: '', our_price: formData.our_price, payment_method: 'Cash' });
       } else {
         setMessage(data.message || 'Failed to submit request');
       }
@@ -502,6 +504,34 @@ const SellingRequestForm = ({ user, onSuccess }) => {
           required
           className="animated-input"
         />
+      </div>
+
+      <div className="form-group">
+        <label>Payment Method</label>
+        <div style={{ display: 'flex', gap: '20px', marginTop: '10px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 'normal', color: '#555' }}>
+            <input 
+              type="radio" 
+              name="payment_method" 
+              value="Cash"
+              checked={formData.payment_method === 'Cash'}
+              onChange={handleChange}
+              style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+            />
+            Cash
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 'normal', color: '#555' }}>
+            <input 
+              type="radio" 
+              name="payment_method" 
+              value="Cheque"
+              checked={formData.payment_method === 'Cheque'}
+              onChange={handleChange}
+              style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+            />
+            Cheque
+          </label>
+        </div>
       </div>
 
       <button type="submit" className="submit-btn" disabled={loading}>
@@ -865,6 +895,9 @@ const UserSellingHistory = ({ user }) => {
             <div style={{display:'flex', justifyContent:'space-between', marginBottom:'5px'}}>
               <span><strong>Our Price:</strong> ₹{req.our_price}</span>
               <span><strong>Date:</strong> {new Date(req.createdAt || req.created_at || Date.now()).toLocaleDateString()}</span>
+            </div>
+            <div style={{display:'flex', justifyContent:'space-between', marginBottom:'5px'}}>
+              <span><strong>Payment Method:</strong> {req.payment_method || 'Cash'}</span>
             </div>
             
             {req.visit_day && req.visit_time && (
