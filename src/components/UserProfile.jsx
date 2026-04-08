@@ -924,6 +924,29 @@ const UserSellingHistory = ({ user }) => {
               {req.broker_reject_comment && <p style={{ margin: 0 }}><strong>Comment:</strong> {req.broker_reject_comment}</p>}
             </div>
           )}
+
+          {req.is_visited && req.status === 'Completed' && (
+            <div style={{ background: '#f9f9f9', borderLeft: '4px solid #4CAF50', padding: '15px', marginTop: '10px', borderRadius: '4px' }}>
+              <strong style={{ color: '#2e7d32', display: 'block', marginBottom: '10px' }}>✅ Request Completed</strong>
+              {req.payment_method === 'Cheque' ? (
+                req.payment_proof && (
+                  <div>
+                    <strong style={{ color: '#555' }}>💳 Payment Proof (Cheque):</strong>
+                    <div style={{ marginTop: '8px' }}>
+                      <a href={req.payment_proof} target="_blank" rel="noreferrer">
+                        <img src={req.payment_proof} alt="Cheque Proof" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #ddd' }} />
+                      </a>
+                    </div>
+                  </div>
+                )
+              ) : (
+                <div style={{ background: '#e8f5e9', padding: '10px', borderRadius: '4px', borderLeft: '4px solid #4CAF50', color: '#2e7d32' }}>
+                  <strong>💵 {user?.username} want to Cash Transaction</strong>
+                  <div style={{ fontSize: '0.85rem', marginTop: '5px' }}>Requested at: {new Date(req.createdAt || req.created_at).toLocaleString()}</div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       ))}
     </div>

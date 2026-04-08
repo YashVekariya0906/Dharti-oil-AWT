@@ -44,6 +44,17 @@ Product.hasMany(OrderItem, { foreignKey: 'product_id', as: 'order_items' });
 
 // Sync database (create tables automatically)
 const syncDatabase = async () => {
+  // Manual migration for payment_proof column
+  try {
+    const [results] = await sequelize.query("SHOW COLUMNS FROM `selling_requests` LIKE 'payment_proof'");
+    if (results.length === 0) {
+      await sequelize.query("ALTER TABLE `selling_requests` ADD COLUMN `payment_proof` VARCHAR(255) NULL");
+      console.log('Manually added payment_proof column to selling_requests table.');
+    }
+  } catch (err) {
+    console.log('Manual column addition skipped or failed:', err.message);
+  }
+
   // First try alter mode (updates existing schemas)
   try {
     await sequelize.sync({ alter: true });

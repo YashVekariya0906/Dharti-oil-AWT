@@ -61,6 +61,10 @@ const SellingRequest = sequelize.define('SellingRequest', {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: true
   },
+  payment_proof: {
+    type: DataTypes.STRING(255),
+    allowNull: true
+  },
   broker_comments: {
     type: DataTypes.TEXT,
     allowNull: true
