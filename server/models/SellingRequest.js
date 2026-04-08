@@ -23,6 +23,11 @@ const SellingRequest = sequelize.define('SellingRequest', {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false
   },
+  payment_method: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+    defaultValue: 'Cash'
+  },
   broker_id: {
     type: DataTypes.INTEGER,
     allowNull: true

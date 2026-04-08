@@ -214,10 +214,10 @@ const BrokerDashboard = ({ user, onLogout }) => {
             {loading ? (
               <p className="loading">Loading...</p>
             ) : requests.filter(r => {
-                if (activeTab === 'completed') return r.status === 'Completed';
-                if (activeTab === 'rejected') return ['BrokerRejected', 'BrokerRejectionConfirmed', 'AdminRejected'].includes(r.status);
-                return !['Completed', 'BrokerRejected', 'BrokerRejectionConfirmed', 'AdminRejected'].includes(r.status);
-              }).length === 0 ? (
+              if (activeTab === 'completed') return r.status === 'Completed';
+              if (activeTab === 'rejected') return ['BrokerRejected', 'BrokerRejectionConfirmed', 'AdminRejected'].includes(r.status);
+              return !['Completed', 'BrokerRejected', 'BrokerRejectionConfirmed', 'AdminRejected'].includes(r.status);
+            }).length === 0 ? (
               <p className="no-data">No {activeTab} requests yet</p>
             ) : (
               <div className="requests-list">
@@ -254,6 +254,10 @@ const BrokerDashboard = ({ user, onLogout }) => {
                         <div className="detail-row">
                           <span className="label">📦 Stock (mound):</span>
                           <span className="value">{req.stock_per_mound}</span>
+                        </div>
+                        <div className="detail-row">
+                          <span className="label">💳 Payment Method:</span>
+                          <span className="value">{req.payment_method || 'Cash'}</span>
                         </div>
                         <div className="detail-row">
                           <span className="label">💰 Customer Price:</span>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './AdminAboutUs.css';
+import { confirmAction } from '../utils/confirmAlert';
 
 const API_BASE = 'http://localhost:5000';
 
@@ -138,7 +139,8 @@ const AdminAboutUs = () => {
   };
 
   const deleteImage = async (field) => {
-    if (!window.confirm('Delete this image?')) return;
+    const isConfirmed = await confirmAction('Are you sure you want to delete this image?');
+    if (!isConfirmed) return;
     try {
       const res = await fetch(`${API_BASE}/api/about-us/delete-image`, {
         method: 'POST',
@@ -213,7 +215,8 @@ const AdminAboutUs = () => {
   };
 
   const deleteMember = async (id) => {
-    if (!window.confirm('Delete this team member?')) return;
+    const isConfirmed = await confirmAction('Are you sure you want to delete this team member?');
+    if (!isConfirmed) return;
     try {
       const res = await fetch(`${API_BASE}/api/about-us/members/${id}`, { method: 'DELETE' });
       if (res.ok) {
@@ -240,7 +243,11 @@ const AdminAboutUs = () => {
     });
   };
 
-  const removeFaq = (index) => setFaqList(prev => prev.filter((_, i) => i !== index));
+  const removeFaq = async (index) => {
+    const isConfirmed = await confirmAction('Are you sure you want to delete this FAQ?');
+    if (!isConfirmed) return;
+    setFaqList(prev => prev.filter((_, i) => i !== index));
+  };
 
   const saveFaqOnly = async () => {
     setSaving(true);
@@ -403,7 +410,7 @@ const AdminAboutUs = () => {
                   {localFile ? (
                     <div className="aau-img-preview small">
                       <img src={URL.createObjectURL(localFile)} alt={`Infra ${i} new`} />
-                      <button type="button" className="aau-del-img-btn" onClick={() => setInfraFiles(prev => { const c = {...prev}; delete c[key]; return c; })}>✕</button>
+                      <button type="button" className="aau-del-img-btn" onClick={() => setInfraFiles(prev => { const c = { ...prev }; delete c[key]; return c; })}>✕</button>
                     </div>
                   ) : existingUrl ? (
                     <div className="aau-img-preview small">

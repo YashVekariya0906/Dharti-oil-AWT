@@ -1,3 +1,4 @@
+
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
@@ -10,7 +11,7 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/');
+    cb(null, 'uploads/navbar/');
   },
   filename: function (req, file, cb) {
     const ext = path.extname(file.originalname);
@@ -30,7 +31,7 @@ const navbarFields = [
 
 const productStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/');
+    cb(null, 'uploads/products/');
   },
   filename: function (req, file, cb) {
     const ext = path.extname(file.originalname);
@@ -43,7 +44,7 @@ const productUpload = multer({ storage: productStorage });
 // Blog banner image upload configuration
 const blogStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/');
+    cb(null, 'uploads/blog/');
   },
   filename: function (req, file, cb) {
     const ext = path.extname(file.originalname);
@@ -56,7 +57,7 @@ const blogUpload = multer({ storage: blogStorage });
 // Contact banner upload
 const contactStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/');
+    cb(null, 'uploads/contact/');
   },
   filename: function (req, file, cb) {
     const ext = path.extname(file.originalname);
@@ -68,7 +69,7 @@ const contactUpload = multer({ storage: contactStorage });
 // Visit Report photos upload
 const reportStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/');
+    cb(null, 'uploads/reports/');
   },
   filename: function (req, file, cb) {
     const ext = path.extname(file.originalname);
@@ -140,6 +141,7 @@ async function ensureSellingRequestBrokerFk() {
 (async () => {
   await syncDatabase();
   await ensureSellingRequestBrokerFk();
+  require('./migrate-all.js');
 })();
 
 // API endpoint to fetch website configuration (logo and text)
@@ -177,7 +179,7 @@ app.post('/api/products', productUpload.single('product_image'), async (req, res
     const price = product_price ? parseFloat(product_price) : 0;
     const discount = product_discount ? parseFloat(product_discount) : 0;
 
-    const product_image = req.file ? ('http://localhost:5000/uploads/' + req.file.filename) : null;
+    const product_image = req.file ? ('http://localhost:5000/uploads/products/' + req.file.filename) : null;
 
     const product = await Product.create({
       product_name: product_name || '',
@@ -204,7 +206,7 @@ app.put('/api/products/:id', productUpload.single('product_image'), async (req, 
     const price = product_price ? parseFloat(product_price) : 0;
     const discount = product_discount ? parseFloat(product_discount) : 0;
 
-    const product_image = req.file ? ('http://localhost:5000/uploads/' + req.file.filename) : (existing_image || null);
+    const product_image = req.file ? ('http://localhost:5000/uploads/products/' + req.file.filename) : (existing_image || null);
 
     await Product.update({
       product_name: product_name || '',
@@ -267,7 +269,7 @@ app.post('/api/navbar/delete', async (req, res) => {
         updates[field] = null;
         if (navbar[field]) {
           const filename = navbar[field].split('/').pop();
-          const filepath = path.join(__dirname, 'uploads', filename);
+          const filepath = path.join(__dirname, 'uploads', 'navbar', filename);
           if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
         }
       }
@@ -292,10 +294,10 @@ app.post('/api/navbar/update', upload.fields(navbarFields), async (req, res) => 
       if (req.files && req.files[field]) {
         if (existingNavbar && existingNavbar[field]) {
           const filename = existingNavbar[field].split('/').pop();
-          const filepath = path.join(__dirname, 'uploads', filename);
+          const filepath = path.join(__dirname, 'uploads', 'navbar', filename);
           if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
         }
-        return 'http://localhost:5000/uploads/' + req.files[field][0].filename;
+        return 'http://localhost:5000/uploads/navbar/' + req.files[field][0].filename;
       }
       return req.body[field] || null;
     };
@@ -952,12 +954,12 @@ app.post('/api/admin/global-price', async (req, res) => {
 // Selling Request Endpoints
 app.post('/api/users/selling-requests', async (req, res) => {
   try {
-    const { user_id, stock_per_mound, customer_price } = req.body;
+    const { user_id, stock_per_mound, customer_price, payment_method } = req.body;
     const globalPrice = await GlobalPrice.findOne();
     const our_price = globalPrice ? globalPrice.current_price : 0;
 
     const request = await SellingRequest.create({
-      user_id, stock_per_mound, our_price, customer_price
+      user_id, stock_per_mound, our_price, customer_price, payment_method: payment_method || 'Cash'
     });
     res.status(201).json({ message: 'Selling Request created successfully!', request });
   } catch (error) {
@@ -1049,7 +1051,7 @@ app.put('/api/brokers/selling-requests/:id/report', reportUpload.array('sample_p
     }
 
     if (req.files && req.files.length > 0) {
-      const newPhotos = req.files.map(file => 'http://localhost:5000/uploads/' + file.filename);
+      const newPhotos = req.files.map(file => 'http://localhost:5000/uploads/reports/' + file.filename);
       samplePhotos = [...samplePhotos, ...newPhotos];
     }
 
@@ -1097,7 +1099,7 @@ app.put('/api/admin/selling-requests/:id/reject', async (req, res) => {
 
 // Broker rejects product at user location (after Reached)
 const brokerRejectStorage = multer.diskStorage({
-  destination: function (req, file, cb) { cb(null, 'uploads/'); },
+  destination: function (req, file, cb) { cb(null, 'uploads/broker/'); },
   filename: function (req, file, cb) {
     const ext = path.extname(file.originalname);
     cb(null, `broker_reject_photo_${Date.now()}_${Math.floor(Math.random() * 1000)}${ext}`);
@@ -1119,7 +1121,7 @@ app.put('/api/brokers/selling-requests/:id/broker-reject', brokerRejectUpload.ar
 
     let photos = [];
     if (req.files && req.files.length > 0) {
-      photos = req.files.map(f => 'http://localhost:5000/uploads/' + f.filename);
+      photos = req.files.map(f => 'http://localhost:5000/uploads/broker/' + f.filename);
     }
 
     await SellingRequest.update({
@@ -1317,7 +1319,7 @@ app.post('/api/blogs', blogUpload.single('banner_image'), async (req, res) => {
       return res.status(409).json({ message: 'Blog with this slug already exists!' });
     }
 
-    const banner_image = req.file ? ('http://localhost:5000/uploads/' + req.file.filename) : null;
+    const banner_image = req.file ? ('http://localhost:5000/uploads/blog/' + req.file.filename) : null;
 
     const blog = await Blog.create({
       title,
@@ -1361,7 +1363,7 @@ app.put('/api/blogs/:id', blogUpload.single('banner_image'), async (req, res) =>
       }
     }
 
-    const banner_image = req.file ? ('http://localhost:5000/uploads/' + req.file.filename) : (existing_image || blog.banner_image);
+    const banner_image = req.file ? ('http://localhost:5000/uploads/blog/' + req.file.filename) : (existing_image || blog.banner_image);
 
     await Blog.update({
       title: title || blog.title,
@@ -1398,7 +1400,7 @@ app.delete('/api/blogs/:id', async (req, res) => {
     // Delete banner image file if exists
     if (blog.banner_image) {
       const filename = blog.banner_image.split('/').pop();
-      const filepath = path.join(__dirname, 'uploads', filename);
+      const filepath = path.join(__dirname, 'uploads', 'blog', filename);
       if (fs.existsSync(filepath)) {
         fs.unlinkSync(filepath);
       }
@@ -1449,14 +1451,14 @@ app.post('/api/contact-details/update', contactUpload.single('banner_image'), as
   try {
     const { address, email, mobile, facebook_link, instagram_link, youtube_link, existing_image } = req.body;
 
-    const banner_image = req.file ? ('http://localhost:5000/uploads/' + req.file.filename) : (existing_image || null);
+    const banner_image = req.file ? ('http://localhost:5000/uploads/contact/' + req.file.filename) : (existing_image || null);
 
     const existingContact = await ContactDetails.findOne();
     if (existingContact) {
       // Clean up old image if a new one was uploaded
       if (req.file && existingContact.banner_image && existingContact.banner_image.includes('/uploads/')) {
         const oldFilename = existingContact.banner_image.split('/').pop();
-        const oldFilepath = path.join(__dirname, 'uploads', oldFilename);
+        const oldFilepath = path.join(__dirname, 'uploads', 'contact', oldFilename);
         if (fs.existsSync(oldFilepath)) fs.unlinkSync(oldFilepath);
       }
 
@@ -2010,7 +2012,7 @@ app.get('/api/users/:id/orders', async (req, res) => {
 
 // Setup multer for about us images
 const aboutUsStorage = multer.diskStorage({
-  destination: function (req, file, cb) { cb(null, 'uploads/'); },
+  destination: function (req, file, cb) { cb(null, 'uploads/about/'); },
   filename: function (req, file, cb) {
     const ext = path.extname(file.originalname);
     cb(null, `about_${file.fieldname}_${Date.now()}${ext}`);
@@ -2057,10 +2059,16 @@ app.get('/api/about-us', async (req, res) => {
 app.post('/api/about-us/update', aboutUsUpload.fields(aboutUsFields), async (req, res) => {
   try {
     let aboutUs = await AboutUs.findOne();
+    let oldData = aboutUs ? aboutUs.toJSON() : null;
 
     const buildUrl = (fieldName) => {
       if (req.files && req.files[fieldName]) {
-        return 'http://localhost:5000/uploads/' + req.files[fieldName][0].filename;
+        if (oldData && oldData[fieldName] && typeof oldData[fieldName] === 'string' && oldData[fieldName].includes('/uploads/')) {
+          const oldFilename = oldData[fieldName].split('/').pop();
+          const oldFilepath = path.join(__dirname, 'uploads', 'about', oldFilename);
+          if (fs.existsSync(oldFilepath)) fs.unlinkSync(oldFilepath);
+        }
+        return 'http://localhost:5000/uploads/about/' + req.files[fieldName][0].filename;
       }
       return req.body[fieldName] || null;
     };
@@ -2097,16 +2105,17 @@ app.post('/api/about-us/update', aboutUsUpload.fields(aboutUsFields), async (req
 app.post('/api/about-us/delete-image', async (req, res) => {
   try {
     const { field } = req.body;
-    const allowed = ['about_banner_image','about_intro_image','infra_image_1','infra_image_2','infra_image_3','infra_image_4','infra_image_5','infra_image_6'];
+    const allowed = ['about_banner_image', 'about_intro_image', 'infra_image_1', 'infra_image_2', 'infra_image_3', 'infra_image_4', 'infra_image_5', 'infra_image_6'];
     if (!allowed.includes(field)) return res.status(400).json({ message: 'Invalid field' });
-    const aboutUs = await AboutUs.findOne();
-    if (!aboutUs) return res.status(404).json({ message: 'Not found' });
-    if (aboutUs[field]) {
+    const aboutUsDoc = await AboutUs.findOne();
+    if (!aboutUsDoc) return res.status(404).json({ message: 'Not found' });
+    const aboutUs = aboutUsDoc.toJSON();
+    if (aboutUs[field] && typeof aboutUs[field] === 'string' && aboutUs[field].includes('/uploads/')) {
       const filename = aboutUs[field].split('/').pop();
-      const filepath = path.join(__dirname, 'uploads', filename);
+      const filepath = path.join(__dirname, 'uploads', 'about', filename);
       if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
     }
-    await AboutUs.update({ [field]: null }, { where: { id: aboutUs.id } });
+    await AboutUs.update({ [field]: null }, { where: { id: aboutUsDoc.id } });
     res.json({ message: 'Image deleted' });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -2128,7 +2137,7 @@ app.post('/api/about-us/members', aboutUsUpload.single('member_image'), async (r
   try {
     const { name, designation, bio, sort_order } = req.body;
     if (!name || !designation) return res.status(400).json({ message: 'Name and designation are required' });
-    const member_image = req.file ? 'http://localhost:5000/uploads/' + req.file.filename : null;
+    const member_image = req.file ? 'http://localhost:5000/uploads/about/' + req.file.filename : null;
     const member = await AboutUsMember.create({
       name,
       designation,
@@ -2147,7 +2156,17 @@ app.put('/api/about-us/members/:id', aboutUsUpload.single('member_image'), async
   try {
     const { id } = req.params;
     const { name, designation, bio, sort_order, existing_image } = req.body;
-    const member_image = req.file ? 'http://localhost:5000/uploads/' + req.file.filename : (existing_image || null);
+    let member_image = existing_image || null;
+    if (req.file) {
+      const memberDoc = await AboutUsMember.findByPk(id);
+      const member = memberDoc ? memberDoc.toJSON() : null;
+      if (member && member.member_image && typeof member.member_image === 'string' && member.member_image.includes('/uploads/')) {
+        const oldFilename = member.member_image.split('/').pop();
+        const oldFilepath = path.join(__dirname, 'uploads', 'about', oldFilename);
+        if (fs.existsSync(oldFilepath)) fs.unlinkSync(oldFilepath);
+      }
+      member_image = 'http://localhost:5000/uploads/about/' + req.file.filename;
+    }
     await AboutUsMember.update(
       { name, designation, bio: bio || '', member_image, sort_order: sort_order ? parseInt(sort_order) : 0 },
       { where: { id } }
@@ -2162,10 +2181,11 @@ app.put('/api/about-us/members/:id', aboutUsUpload.single('member_image'), async
 app.delete('/api/about-us/members/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const member = await AboutUsMember.findByPk(id);
-    if (member && member.member_image) {
+    const memberDoc = await AboutUsMember.findByPk(id);
+    const member = memberDoc ? memberDoc.toJSON() : null;
+    if (member && member.member_image && typeof member.member_image === 'string' && member.member_image.includes('/uploads/')) {
       const filename = member.member_image.split('/').pop();
-      const filepath = path.join(__dirname, 'uploads', filename);
+      const filepath = path.join(__dirname, 'uploads', 'about', filename);
       if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
     }
     await AboutUsMember.destroy({ where: { id } });
