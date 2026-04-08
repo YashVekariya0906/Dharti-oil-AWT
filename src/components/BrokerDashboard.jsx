@@ -8,7 +8,7 @@ const BrokerDashboard = ({ user, onLogout }) => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [scheduleData, setScheduleData] = useState({ visit_date: '', visit_time: '' });
   const [reportModeRequestId, setReportModeRequestId] = useState(null);
-  const [reportData, setReportData] = useState({ delivered_quantity: '', broker_comments: '', final_price: '', sample_photos: [] });
+  const [reportData, setReportData] = useState({ delivered_quantity: '', broker_comments: '', final_price: '', sample_photos: [], payment_proof: null });
   const [message, setMessage] = useState('');
 
   // Broker reject mode
@@ -104,6 +104,9 @@ const BrokerDashboard = ({ user, onLogout }) => {
       Array.from(reportData.sample_photos).forEach(file => {
         formData.append('sample_photos', file);
       });
+      if (reportData.payment_proof) {
+        formData.append('payment_proof', reportData.payment_proof);
+      }
 
       const res = await fetch(`http://localhost:5000/api/brokers/selling-requests/${requestId}/report`, {
         method: 'PUT',
@@ -113,7 +116,7 @@ const BrokerDashboard = ({ user, onLogout }) => {
       const data = await res.json();
       if (res.ok) {
         setMessage('Visit report submitted successfully!');
-        setReportData({ delivered_quantity: '', broker_comments: '', final_price: '', sample_photos: [] });
+        setReportData({ delivered_quantity: '', broker_comments: '', final_price: '', sample_photos: [], payment_proof: null });
         setReportModeRequestId(null);
         fetchAssignedRequests();
       } else {
@@ -447,6 +450,25 @@ const BrokerDashboard = ({ user, onLogout }) => {
                             />
                             <small>You can select multiple photos.</small>
                           </div>
+                          
+                          {req.payment_method === 'Cheque' ? (
+                            <div className="form-group" style={{ background: '#f8f9fa', padding: '10px', borderRadius: '5px', borderLeft: '4px solid #3498db' }}>
+                              <label style={{ color: '#2c3e50' }}>Payment Proof (Cheque Photo) <span style={{ color: 'red' }}>*</span></label>
+                              <input
+                                type="file"
+                                onChange={(e) => setReportData({ ...reportData, payment_proof: e.target.files[0] })}
+                                className="animated-input"
+                                required
+                              />
+                              <small>Required because User requested Cheque transaction.</small>
+                            </div>
+                          ) : (
+                            <div className="form-group" style={{ background: '#f8f9fa', padding: '10px', borderRadius: '5px', borderLeft: '4px solid #f39c12' }}>
+                              <strong>User want the Cash Transaction</strong>
+                              <p style={{ fontSize: '0.85rem', color: '#666', margin: '5px 0 0 0' }}>Please collect/provide exact cash manually. No proof upload needed.</p>
+                            </div>
+                          )}
+
                           <div className="form-group">
                             <label>Delivered Quantity</label>
                             <input

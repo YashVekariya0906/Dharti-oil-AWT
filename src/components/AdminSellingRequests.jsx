@@ -401,6 +401,24 @@ const AdminSellingRequests = () => {
                         } catch { return null; }
                         return null;
                       })()}
+                      
+                      {req.payment_method === 'Cheque' ? (
+                        req.payment_proof && (
+                          <div style={{ marginTop: '15px', background: '#f8f9fa', padding: '10px', borderRadius: '5px' }}>
+                            <strong>💳 Payment Proof (Cheque):</strong>
+                            <div style={{ marginTop: '5px' }}>
+                              <a href={req.payment_proof} target="_blank" rel="noreferrer">
+                                <img src={req.payment_proof} alt="Cheque Proof" style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #ccc' }} />
+                              </a>
+                            </div>
+                          </div>
+                        )
+                      ) : (
+                        <div style={{ marginTop: '15px', background: '#e8f5e9', padding: '10px', borderRadius: '5px', borderLeft: '4px solid #4CAF50', color: '#2e7d32' }}>
+                          <strong>💵 {req.user?.username || 'User'} want to Cash Transaction</strong>
+                          <div style={{ fontSize: '0.8rem', marginTop: '4px' }}>Requested on: {new Date(req.createdAt || req.created_at).toLocaleString()}</div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

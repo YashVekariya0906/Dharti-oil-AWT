@@ -1030,7 +1030,7 @@ app.put('/api/brokers/selling-requests/:id/reached', async (req, res) => {
   }
 });
 
-app.put('/api/brokers/selling-requests/:id/report', reportUpload.array('sample_photos', 5), async (req, res) => {
+app.put('/api/brokers/selling-requests/:id/report', reportUpload.fields([{ name: 'sample_photos', maxCount: 5 }, { name: 'payment_proof', maxCount: 1 }]), async (req, res) => {
   try {
     const { id } = req.params;
     const { delivered_quantity, broker_comments, final_price } = req.body;
@@ -1050,9 +1050,14 @@ app.put('/api/brokers/selling-requests/:id/report', reportUpload.array('sample_p
       }
     }
 
-    if (req.files && req.files.length > 0) {
-      const newPhotos = req.files.map(file => 'http://localhost:5000/uploads/reports/' + file.filename);
+    if (req.files && req.files.sample_photos) {
+      const newPhotos = req.files.sample_photos.map(file => 'http://localhost:5000/uploads/reports/' + file.filename);
       samplePhotos = [...samplePhotos, ...newPhotos];
+    }
+    
+    let paymentProofUrl = request.payment_proof || null;
+    if (req.files && req.files.payment_proof && req.files.payment_proof.length > 0) {
+      paymentProofUrl = 'http://localhost:5000/uploads/reports/' + req.files.payment_proof[0].filename;
     }
 
     await SellingRequest.update({
@@ -1060,6 +1065,7 @@ app.put('/api/brokers/selling-requests/:id/report', reportUpload.array('sample_p
       broker_comments: broker_comments != null ? broker_comments : request.broker_comments,
       final_price: final_price != null ? parseFloat(final_price) : request.final_price,
       sample_photos: JSON.stringify(samplePhotos),
+      payment_proof: paymentProofUrl,
       is_visited: true,
       status: 'Completed'
     }, { where: { request_id: id } });
