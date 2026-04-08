@@ -1,6 +1,6 @@
 # Broker Login & User Profile - FIXES APPLIED
 
-## ✅ Fix #1: Broker Login Now Works WITHOUT OTP
+##   Fix #1: Broker Login Now Works WITHOUT OTP
 
 ### Changes Made:
 - **server/index.js** (POST /api/admin/brokers):
@@ -33,7 +33,7 @@
 
 ---
 
-## ✅ Fix #2: User Profile Button Now Clickable
+##   Fix #2: User Profile Button Now Clickable
 
 ### Changes Made:
 - **src/components/Navbar.jsx**:
@@ -100,7 +100,7 @@
    - Enter password: password123
    - Click "Login"
    
-   **Expected**: ✅ Login successful → Redirected to BrokerDashboard
+   **Expected**:   Login successful → Redirected to BrokerDashboard
    
    **If you see "User not found"**: 
    - Check brokers table: `SELECT * FROM brokers WHERE email='broker@test.com';`
@@ -118,7 +118,7 @@
    - Check browser console (F12) for:
      ```
      🔵 Profile button clicked
-     ✅ Rendering UserProfile modal for user: {user_id: 1, username: '...', role: 'user'}
+       Rendering UserProfile modal for user: {user_id: 1, username: '...', role: 'user'}
      ```
    - Profile modal should slide up from bottom
    - Should see: "👤 My Profile" header with close button
@@ -148,7 +148,7 @@
 Open browser F12 → Console tab, look for:
 - `🟢 User logged in: {user_id: ..., role: 'user'}`
 - `🔵 Profile button clicked`
-- `✅ Rendering UserProfile modal for user: ...`
+- `  Rendering UserProfile modal for user: ...`
 
 ### Check Network:
 - Network tab → filter by XHR
@@ -204,9 +204,9 @@ SELECT user_id, username, role FROM register LIMIT 5;
 
 ## Summary
 
-✅ **Broker Login**: Now works without OTP verification - brokers can login immediately with email + password set by admin
+  **Broker Login**: Now works without OTP verification - brokers can login immediately with email + password set by admin
 
-✅ **User Profile**: Button now shows for logged-in users and opens profile modal when clicked
+  **User Profile**: Button now shows for logged-in users and opens profile modal when clicked
 
 🔵 **Console Logging**: Added debugging to help diagnose any remaining issues
 

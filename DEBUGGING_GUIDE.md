@@ -35,10 +35,10 @@ Added detailed console logs to track:
 ### Check Server Console:
 1. The Node.js server should be running on port 5000
 2. Look for logs like:
-   - ✅ Broker created successfully
-   - ❌ Missing required fields
-   - ❌ Broker with email already exists
-   - ✅ Global price updated
+   -   Broker created successfully
+   -   Missing required fields
+   -   Broker with email already exists
+   -   Global price updated
 
 ## Common Issues & Solutions
 
@@ -86,9 +86,9 @@ node test-api.js
 ```
 
 Expected output:
-- ✅ Database synced
+-   Database synced
 - Created/Found GlobalPrice entry
-- ✅ Updated successfully
+-   Updated successfully
 - Shows list of brokers
 
 ## Data Storage Verification

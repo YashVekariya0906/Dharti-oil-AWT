@@ -6,7 +6,7 @@ async function testAPI() {
 
     // Sync database
     await syncDatabase();
-    console.log('\n✅ Database synced');
+    console.log('\n  Database synced');
 
     // Check GlobalPrice table
     console.log('\n--- GlobalPrice Table ---');
@@ -32,10 +32,10 @@ async function testAPI() {
       console.log(`${i + 1}. ${b.name} (${b.email}) - Status: ${b.status}, Verified: ${b.otp_code === null ? 'Yes' : 'No'}`);
     });
 
-    console.log('\n✅ All tests completed!');
+    console.log('\n  All tests completed!');
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error:', error.message);
+    console.error('  Error:', error.message);
     console.error(error);
     process.exit(1);
   }

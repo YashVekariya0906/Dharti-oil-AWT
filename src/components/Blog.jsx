@@ -19,7 +19,7 @@ const isHeading = (line) => {
   if (!trimmed) return false;
 
   // Specific markers user used for headings
-  const headingEmojis = ['🌿', '🥜', '💡', '🛢', '🔸', '🔥', '🛒', '✅', '🌟'];
+  const headingEmojis = ['🌿', '🥜', '💡', '🛢', '🔸', '🔥', '🛒', ' ', '🌟'];
   for (const emoji of headingEmojis) {
     if (trimmed.startsWith(emoji)) return true;
   }
@@ -157,11 +157,10 @@ const Blog = () => {
                   <div
                     className="blog-hero-image"
                     style={{
-                      backgroundImage: `url(${
-                        blog.banner_image.startsWith('http')
+                      backgroundImage: `url(${blog.banner_image.startsWith('http')
                           ? blog.banner_image
                           : `http://localhost:5000${blog.banner_image}`
-                      })`
+                        })`
                     }}
                   >
                     <div className="blog-hero-overlay">

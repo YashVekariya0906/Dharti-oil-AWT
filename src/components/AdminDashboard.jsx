@@ -13,6 +13,7 @@ import AdminUsersList from './AdminUsersList';
 import AdminOrdersList from './AdminOrdersList';
 import AdminDeliveryCharge from './AdminDeliveryCharge';
 import AdminAboutUs from './AdminAboutUs';
+import AdminOilCake from './AdminOilCake';
 import './AdminDashboard.css';
 
 const AdminDashboard = ({ user, onLogout }) => {
@@ -24,102 +25,108 @@ const AdminDashboard = ({ user, onLogout }) => {
         <h2 className="admin-title">Dharti Admin</h2>
         <ul className="admin-nav-list">
           <li className="nav-section-title">Dashboard</li>
-          <li 
-            className={activeTab === 'dashboard' ? 'active' : ''} 
+          <li
+            className={activeTab === 'dashboard' ? 'active' : ''}
             onClick={() => setActiveTab('dashboard')}
           >
             Dashboard Home
           </li>
 
           <li className="nav-section-title">User Management</li>
-          <li 
-            className={activeTab === 'usersList' ? 'active' : ''} 
+          <li
+            className={activeTab === 'usersList' ? 'active' : ''}
             onClick={() => setActiveTab('usersList')}
           >
             User Management
           </li>
-          <li 
-            className={activeTab === 'brokers' ? 'active' : ''} 
+          <li
+            className={activeTab === 'brokers' ? 'active' : ''}
             onClick={() => setActiveTab('brokers')}
           >
             Broker Management
           </li>
 
           <li className="nav-section-title">Selling System</li>
-          <li 
-            className={activeTab === 'globalPrice' ? 'active' : ''} 
+          <li
+            className={activeTab === 'globalPrice' ? 'active' : ''}
             onClick={() => setActiveTab('globalPrice')}
           >
             Global Selling Price
           </li>
-          <li 
-            className={activeTab === 'sellingRequests' ? 'active' : ''} 
+          <li
+            className={activeTab === 'sellingRequests' ? 'active' : ''}
             onClick={() => setActiveTab('sellingRequests')}
           >
             Selling Requests
           </li>
-          <li 
-            className={activeTab === 'ordersList' ? 'active' : ''} 
+          <li
+            className={activeTab === 'ordersList' ? 'active' : ''}
             onClick={() => setActiveTab('ordersList')}
           >
             E-Commerce Orders
           </li>
+          <li
+            className={activeTab === 'oilCake' ? 'active' : ''}
+            onClick={() => setActiveTab('oilCake')}
+          >
+            Oil Cake Selling
+          </li>
 
           <li className="nav-section-title">Products & Content</li>
-          <li 
-            className={activeTab === 'addProduct' ? 'active' : ''} 
+          <li
+            className={activeTab === 'addProduct' ? 'active' : ''}
             onClick={() => setActiveTab('addProduct')}
           >
             Add Product
           </li>
-          <li 
-            className={activeTab === 'blogManagement' ? 'active' : ''} 
+          <li
+            className={activeTab === 'blogManagement' ? 'active' : ''}
             onClick={() => setActiveTab('blogManagement')}
           >
             Blog Management
           </li>
 
           <li className="nav-section-title">Website Settings</li>
-          <li 
-            className={activeTab === 'navUpdate' ? 'active' : ''} 
+          <li
+            className={activeTab === 'navUpdate' ? 'active' : ''}
             onClick={() => setActiveTab('navUpdate')}
           >
             Update Home Page Images
           </li>
-          <li 
-            className={activeTab === 'deliveryCharge' ? 'active' : ''} 
+          <li
+            className={activeTab === 'deliveryCharge' ? 'active' : ''}
             onClick={() => setActiveTab('deliveryCharge')}
           >
             Delivery & Payment Settings
           </li>
-          <li 
-            className={activeTab === 'updateShopDetails' ? 'active' : ''} 
+          <li
+            className={activeTab === 'updateShopDetails' ? 'active' : ''}
             onClick={() => setActiveTab('updateShopDetails')}
           >
             Update Shop Info
           </li>
-          <li 
-            className={activeTab === 'updateContact' ? 'active' : ''} 
+          <li
+            className={activeTab === 'updateContact' ? 'active' : ''}
             onClick={() => setActiveTab('updateContact')}
           >
             Update Contact Page
           </li>
-          <li 
-            className={activeTab === 'updateFooter' ? 'active' : ''} 
+          <li
+            className={activeTab === 'updateFooter' ? 'active' : ''}
             onClick={() => setActiveTab('updateFooter')}
           >
             Update Footer
           </li>
-          <li 
-            className={activeTab === 'aboutUs' ? 'active' : ''} 
+          <li
+            className={activeTab === 'aboutUs' ? 'active' : ''}
             onClick={() => setActiveTab('aboutUs')}
           >
             About Us Page
           </li>
 
           <li className="nav-section-title">Support</li>
-          <li 
-            className={activeTab === 'contactInquiries' ? 'active' : ''} 
+          <li
+            className={activeTab === 'contactInquiries' ? 'active' : ''}
             onClick={() => setActiveTab('contactInquiries')}
           >
             Contact Inquiries
@@ -127,7 +134,7 @@ const AdminDashboard = ({ user, onLogout }) => {
         </ul>
         <button onClick={onLogout} className="admin-logout-btn">Logout</button>
       </aside>
-      
+
       <main className="admin-main-content">
         <header className="admin-header">
           Welcome back, {user?.username || 'Admin'}!
@@ -140,33 +147,35 @@ const AdminDashboard = ({ user, onLogout }) => {
               <p>You are logged in with the <strong>{user?.role}</strong> role.</p>
             </div>
           ) : activeTab === 'navUpdate' ? (
-             <UpdateNavbar />
+            <UpdateNavbar />
           ) : activeTab === 'addProduct' ? (
-             <AddProduct />
+            <AddProduct />
           ) : activeTab === 'blogManagement' ? (
-             <AdminBlogForm />
+            <AdminBlogForm />
           ) : activeTab === 'updateFooter' ? (
-             <UpdateFooter />
+            <UpdateFooter />
           ) : activeTab === 'updateShopDetails' ? (
-             <UpdateShopDetails />
+            <UpdateShopDetails />
           ) : activeTab === 'updateContact' ? (
-             <AdminContactForm />
+            <AdminContactForm />
           ) : activeTab === 'contactInquiries' ? (
-             <AdminContactInquiries />
+            <AdminContactInquiries />
           ) : activeTab === 'deliveryCharge' ? (
-             <AdminDeliveryCharge />
+            <AdminDeliveryCharge />
           ) : activeTab === 'brokers' ? (
-             <AdminBrokerForm />
+            <AdminBrokerForm />
           ) : activeTab === 'globalPrice' ? (
-             <AdminGlobalPrice />
+            <AdminGlobalPrice />
           ) : activeTab === 'sellingRequests' ? (
-             <AdminSellingRequests />
+            <AdminSellingRequests />
           ) : activeTab === 'ordersList' ? (
-             <AdminOrdersList />
+            <AdminOrdersList />
+          ) : activeTab === 'oilCake' ? (
+            <AdminOilCake />
           ) : activeTab === 'usersList' ? (
-             <AdminUsersList />
+            <AdminUsersList />
           ) : activeTab === 'aboutUs' ? (
-             <AdminAboutUs />
+            <AdminAboutUs />
           ) : null}
         </div>
       </main>
