@@ -1,0 +1,44 @@
+{
+  "nav": {
+    "welcome": "Welcome",
+    "profile": "Profile",
+    "logout": "Logout",
+    "login": "Login",
+    "register": "Register",
+    "home": "Home",
+    "shop": "Shop",
+    "about": "About Us",
+    "blog": "Blog",
+    "contact": "Contact",
+    "search_placeholder": "Search products...",
+    "wishlist": "Wishlist",
+    "search": "Search"
+  },
+  "app": {
+    "our_products": "Our Products",
+    "loading_products": "Loading products from database...",
+    "no_products": "No products found in the database.",
+    "add_to_cart": "Add to Cart",
+    "more_info": "More Info"
+  },
+  "auth": {
+    "login_title": "Login to your account",
+    "username": "Username",
+    "password": "Password",
+    "submit_login": "Login",
+    "no_account": "Don't have an account? Register here",
+    "register_title": "Create an Account",
+    "role_user": "User",
+    "role_broker": "Broker",
+    "submit_register": "Register",
+    "have_account": "Already have an account? Login here"
+  },
+  "dashboard": {
+    "admin_welcome": "Welcome",
+    "dashboard": "Dashboard",
+    "manage_users": "Manage Users",
+    "manage_products": "Manage Products",
+    "orders": "Orders",
+    "settings": "Settings"
+  }
+}

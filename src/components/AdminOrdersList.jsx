@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { confirmAction } from '../utils/confirmAlert';
+import { generateTaxInvoice } from '../utils/invoiceGenerator';
+import { FaDownload } from 'react-icons/fa';
 import './AdminSellingRequests.css'; 
 
 const AdminOrdersList = () => {
@@ -60,7 +62,38 @@ const AdminOrdersList = () => {
 
   return (
     <div className="admin-wrapper" style={{ padding: '20px' }}>
-      <h2>E-Commerce Orders Management</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h2 style={{ margin: 0 }}>E-Commerce Orders Management</h2>
+        <button 
+          onClick={fetchOrders} 
+          style={{ 
+            padding: '8px 16px', 
+            backgroundColor: '#4CAF50', 
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '6px', 
+            cursor: 'pointer', 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '10px',
+            fontSize: '0.9rem',
+            fontWeight: 'bold',
+            boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+          }}
+        >
+          <span style={{ 
+            backgroundColor: '#2196F3', 
+            borderRadius: '4px', 
+            width: '24px', 
+            height: '24px', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            fontSize: '14px'
+          }}>🔄</span>
+          Refresh
+        </button>
+      </div>
       <div className="table-responsive" style={{ overflowX: 'auto', backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
         <table className="admin-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead style={{ backgroundColor: '#f4f6f8' }}>
@@ -111,12 +144,65 @@ const AdminOrdersList = () => {
                       </select>
                     </td>
                     <td style={{ padding: '12px' }}>
-                      <button 
-                        onClick={() => toggleExpand(order.order_id)}
-                        style={{ padding: '6px 12px', backgroundColor: '#3498db', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                      >
-                        {expandedOrder === order.order_id ? 'Hide Details' : 'View Details'}
-                      </button>
+                      <div style={{ display: 'flex', gap: '5px' }}>
+                        <button 
+                          onClick={() => toggleExpand(order.order_id)}
+                          style={{ padding: '6px 12px', backgroundColor: '#3498db', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                        >
+                          {expandedOrder === order.order_id ? 'Hide Details' : 'View Details'}
+                        </button>
+                        {order.status === 'Delivered' && (
+                          <button 
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              try {
+                                const res = await fetch('http://localhost:5000/api/invoice-settings');
+                                const settings = res.ok ? await res.json() : null;
+                                
+                                const isTaxIncluded = !order.cgst; // Fallback if old order
+                                
+                                const calculatedItems = order.items.map(i => {
+                                  const baseItemRate = isTaxIncluded ? (i.price_at_purchase / 1.05) : i.price_at_purchase;
+                                  return {
+                                    productName: i.product?.product_name || 'Groundnut Oil',
+                                    hsn: "1508",
+                                    qty: i.quantity,
+                                    rate: baseItemRate,
+                                    gstPercent: 5.00,
+                                    amount: baseItemRate * i.quantity
+                                  };
+                                });
+
+                                const subTotal = calculatedItems.reduce((acc, i) => acc + i.amount, 0);
+                                const cgst = subTotal * 0.025;
+                                const sgst = subTotal * 0.025;
+                                const grandTotal = Number(order.total_amount);
+                                const roundOff = grandTotal - (subTotal + cgst + sgst);
+
+                                const invoiceData = {
+                                  type: "TAX INVOICE",
+                                  invoiceNo: `GT/EC-${order.order_id}`,
+                                  date: new Date(order.createdAt).toLocaleDateString('en-GB'),
+                                  customerName: order.user?.username || 'Customer',
+                                  placeOfSupply: "24-Gujarat",
+                                  items: calculatedItems,
+                                  subTotal: subTotal,
+                                  cgst: cgst,
+                                  sgst: sgst,
+                                  roundOff: roundOff,
+                                  grandTotal: grandTotal
+                                };
+                                generateTaxInvoice(invoiceData, settings, true);
+                              } catch (err) {
+                                console.error("Error generating tax invoice:", err);
+                              }
+                            }}
+                            style={{ padding: '6px 10px', backgroundColor: '#2c3e50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
+                          >
+                            <FaDownload /> INVOICE
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                   {expandedOrder === order.order_id && (

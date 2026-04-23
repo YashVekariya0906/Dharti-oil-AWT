@@ -75,7 +75,35 @@ const AdminUsersList = () => {
     <div className="admin-users-container fade-in">
       <div className="admin-users-header">
         <h2> User Management</h2>
-        <button onClick={fetchUsers} className="refresh-btn">🔄 Refresh</button>
+        <button 
+          onClick={fetchUsers} 
+          style={{ 
+            padding: '8px 16px', 
+            backgroundColor: '#4CAF50', 
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '6px', 
+            cursor: 'pointer', 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '10px',
+            fontSize: '0.9rem',
+            fontWeight: 'bold',
+            boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+          }}
+        >
+          <span style={{ 
+            backgroundColor: '#2196F3', 
+            borderRadius: '4px', 
+            width: '24px', 
+            height: '24px', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            fontSize: '14px'
+          }}>🔄</span>
+          Refresh
+        </button>
       </div>
 
       {message && <div className="msg success">{message}</div>}

@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './Register.css';
 
 const Register = ({ onBack, onLogin, onSwitchToLogin }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     username: '',
     moblie_no: '',
@@ -87,7 +89,7 @@ const Register = ({ onBack, onLogin, onSwitchToLogin }) => {
     <div className="register-container">
       <div className="register-card">
         {onBack && <button className="register-back-btn" onClick={onBack}>← Back to Home</button>}
-        <h2>Create an Account</h2>
+        <h2>{t('auth.register_title')}</h2>
         {message && <div className={`register-msg ${message.includes('success') ? 'success' : 'error'}`}>{message}</div>}
         
         {!otpMode ? (
@@ -121,17 +123,16 @@ const Register = ({ onBack, onLogin, onSwitchToLogin }) => {
               <label>Confirm Password</label>
               <input type="password" name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} required />
             </div>
-            <button type="submit" className="register-submit-btn">Register</button>
+            <button type="submit" className="register-submit-btn">{t('auth.submit_register')}</button>
           </form>
           
           <div style={{ marginTop: '15px', textAlign: 'center' }}>
-            <span style={{ color: '#666', fontSize: '14px' }}>Already have an account? </span>
             <button 
               type="button" 
               onClick={onSwitchToLogin} 
               style={{ background: 'none', border: 'none', color: '#4CAF50', cursor: 'pointer', textDecoration: 'underline', padding: 0, fontSize: '14px' }}
             >
-              Go to Login
+              {t('auth.have_account')}
             </button>
           </div>
           </>

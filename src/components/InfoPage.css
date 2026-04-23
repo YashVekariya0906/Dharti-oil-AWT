@@ -182,13 +182,43 @@
 }
 
 @media (max-width: 768px) {
+  .info-page-container {
+    padding: 0 15px;
+    margin: 20px auto;
+  }
+  
   .info-grid {
     flex-direction: column-reverse;
   }
   .info-right, .info-left {
     width: 100%;
+    box-sizing: border-box;
+  }
+  .info-left {
+    padding: 20px;
   }
   .sticky-card {
     position: static;
+    margin-bottom: 20px;
+  }
+  
+  .main-title {
+    font-size: 1.6rem;
+    text-align: center;
+  }
+  
+  .main-desc {
+    font-size: 1rem;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .highlight-box {
+    min-width: 100%;
+  }
+  
+  .pkg-option {
+    padding: 12px 15px;
   }
 }

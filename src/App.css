@@ -68,7 +68,7 @@ body {
 
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 30px;
 }
 
@@ -208,3 +208,73 @@ body {
 
 .favorite-icon.active { color: #27ae60; }
 .favorite-icon { cursor: pointer; transition: color 0.3s; }
+
+/* --- Responsive --- */
+@media screen and (max-width: 1200px) {
+  .product-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media screen and (max-width: 992px) {
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .hero-section h1 {
+    font-size: 2.2rem;
+  }
+  
+  .hero-section p {
+    font-size: 1rem;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .hover-actions {
+    bottom: 15px !important; /* Always visible on tablet/mobile */
+    background: rgba(255, 255, 255, 0.8);
+    padding: 8px;
+    border-radius: 30px;
+    width: auto;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .hover-action-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+}
+
+@media screen and (max-width: 576px) {
+  .product-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .hero-section {
+    padding: 60px 20px;
+  }
+  
+  .hero-section h1 {
+    font-size: 1.8rem;
+  }
+  
+  .features-section h2 {
+    font-size: 1.5rem;
+  }
+
+  /* Form Container improvements */
+  .login-container, .register-container {
+    width: 95% !important;
+    padding: 20px !important;
+  }
+
+  .forgot-password-btn {
+    float: none !important;
+    display: block;
+    text-align: center;
+    margin: 10px auto !important;
+  }
+}

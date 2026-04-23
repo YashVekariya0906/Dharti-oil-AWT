@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './Login.css';
 
 const Login = ({ onBack, onLogin, onSwitchToRegister }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({ emali: '', password: '' });
   const [message, setMessage] = useState('');
   
@@ -147,7 +149,7 @@ const Login = ({ onBack, onLogin, onSwitchToRegister }) => {
     <div className="login-container">
       <div className="login-card">
         {onBack && <button className="login-back-btn" onClick={onBack}>← Back to Home</button>}
-        <h2>Sign In</h2>
+        <h2>{t('auth.login_title')}</h2>
         {message && <div className={`login-msg ${message.toLowerCase().includes('success') ? 'success' : 'error'}`}>{message}</div>}
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
@@ -155,29 +157,28 @@ const Login = ({ onBack, onLogin, onSwitchToRegister }) => {
             <input type="email" name="emali" value={formData.emali} onChange={handleChange} required />
           </div>
           <div className="form-group">
-            <label>Password</label>
+            <label>{t('auth.password')}</label>
             <input type="password" name="password" value={formData.password} onChange={handleChange} required />
           </div>
-          <div style={{ textAlign: 'right', marginBottom: '15px' }}>
+          <div className="forgot-password-container">
             <button 
               type="button" 
               onClick={() => setIsForgotPassword(true)} 
-              style={{ background: 'none', border: 'none', color: '#4CAF50', cursor: 'pointer', fontSize: '14px', padding: 0 }}
+              className="forgot-password-btn"
             >
               Forgot Password?
             </button>
           </div>
-          <button type="submit" className="login-submit-btn">Login</button>
+          <button type="submit" className="login-submit-btn">{t('auth.submit_login')}</button>
         </form>
         
         <div style={{ marginTop: '15px', textAlign: 'center' }}>
-          <span style={{ color: '#666', fontSize: '14px' }}>Don't have an account? </span>
           <button 
             type="button" 
             onClick={onSwitchToRegister} 
             style={{ background: 'none', border: 'none', color: '#4CAF50', cursor: 'pointer', textDecoration: 'underline', padding: 0, fontSize: '14px' }}
           >
-            Go to Registration
+            {t('auth.no_account')}
           </button>
         </div>
       </div>

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { generateTaxInvoice } from '../utils/invoiceGenerator';
+import { FaDownload } from 'react-icons/fa';
 import './AdminSellingRequests.css';
 
 const STATUS_COLORS = {
@@ -7,7 +9,7 @@ const STATUS_COLORS = {
   Processing: { bg: '#d1ecf1', color: '#0c5460' },
   Delivered: { bg: '#d4edda', color: '#155724' },
   Cancelled: { bg: '#f8d7da', color: '#721c24' },
-  Rejected: { bg: '#f8d7da', color: '#721c24' },
+  Rejected: { bg: '#f8d7da', color: '#721c24', label: 'Rejected' },
 };
 
 const AdminOilCake = () => {
@@ -106,7 +108,7 @@ const AdminOilCake = () => {
     handleStatusUpdate(id, requests.find(r => r.id === id)?.status);
   };
 
-  const statusCount = (st) => requests.filter(r => r.status === st).length;
+
 
   return (
     <div className="admin-wrapper" style={{ padding: '20px' }}>
@@ -127,6 +129,35 @@ const AdminOilCake = () => {
             style={{ padding: '8px 18px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: '600', background: activeSection === 'orders' ? '#2c3e50' : '#ecf0f1', color: activeSection === 'orders' ? 'white' : '#2c3e50' }}
           >
             Purchase Requests ({requests.length})
+          </button>
+          <button 
+            onClick={fetchRequests} 
+            style={{ 
+              padding: '8px 16px', 
+              backgroundColor: '#4CAF50', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '6px', 
+              cursor: 'pointer', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '10px',
+              fontSize: '0.85rem',
+              fontWeight: 'bold',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+            }}
+          >
+            <span style={{ 
+              backgroundColor: '#2196F3', 
+              borderRadius: '4px', 
+              width: '24px', 
+              height: '24px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              fontSize: '14px'
+            }}>🔄</span>
+            Refresh
           </button>
         </div>
       </div>
@@ -201,14 +232,7 @@ const AdminOilCake = () => {
       {/* ===== PURCHASE REQUESTS ===== */}
       {activeSection === 'orders' && (
         <div>
-          {/* Summary Stats */}
-          <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
-            {Object.entries(STATUS_COLORS).map(([st, { bg, color }]) => (
-              <div key={st} style={{ background: bg, color, padding: '10px 18px', borderRadius: '8px', fontWeight: '600', fontSize: '0.9rem' }}>
-                {st}: {statusCount(st)}
-              </div>
-            ))}
-          </div>
+
 
           {loadingReqs ? (
             <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>Loading requests...</div>
@@ -220,7 +244,7 @@ const AdminOilCake = () => {
               <p>No oil cake purchase requests yet.</p>
             </div>
           ) : (
-            <div style={{ background: 'white', borderRadius: '10px', overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.07)' }}>
+            <div style={{ background: 'white', borderRadius: '10px', overflowX: 'auto', boxShadow: '0 2px 12px rgba(0,0,0,0.07)' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                 <thead style={{ background: '#f4f6f8' }}>
                   <tr>
@@ -246,17 +270,38 @@ const AdminOilCake = () => {
                           {req.status === 'Pending' ? (
                             <div style={{ display: 'flex', gap: '8px' }}>
                               <button
-                                onClick={() => setRequestModes({ ...requestModes, [req.id]: 'accepting' })}
-                                style={{ padding: '6px 12px', background: requestModes[req.id] === 'accepting' ? '#2ecc71' : '#ecf0f1', color: requestModes[req.id] === 'accepting' ? 'white' : '#27ae60', border: '1px solid #27ae60', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', fontSize: '0.8rem' }}
+                                onClick={() => {
+                                  setRequestModes({ ...requestModes, [req.id]: 'accepting' });
+                                  setExpandedId(req.id);
+                                }}
+                                style={{ 
+                                  padding: '6px 12px', 
+                                  background: requestModes[req.id] === 'accepting' && expandedId === req.id ? '#2ecc71' : '#ecf0f1', 
+                                  color: requestModes[req.id] === 'accepting' && expandedId === req.id ? 'white' : '#27ae60', 
+                                  border: '1px solid #27ae60', 
+                                  borderRadius: '4px', 
+                                  cursor: 'pointer', 
+                                  fontWeight: '600', 
+                                  fontSize: '0.8rem' 
+                                }}
                               >
                                 Accept
                               </button>
                               <button
                                 onClick={() => {
                                   setRequestModes({ ...requestModes, [req.id]: 'rejecting' });
-                                  setExpandedId(req.id); // Show note field immediately for reject
+                                  setExpandedId(req.id);
                                 }}
-                                style={{ padding: '6px 12px', background: requestModes[req.id] === 'rejecting' ? '#e74c3c' : '#ecf0f1', color: requestModes[req.id] === 'rejecting' ? 'white' : '#c0392b', border: '1px solid #c0392b', borderRadius: '4px', cursor: 'pointer', fontWeight: '600', fontSize: '0.8rem' }}
+                                style={{ 
+                                  padding: '6px 12px', 
+                                  background: requestModes[req.id] === 'rejecting' && expandedId === req.id ? '#e74c3c' : '#ecf0f1', 
+                                  color: requestModes[req.id] === 'rejecting' && expandedId === req.id ? 'white' : '#c0392b', 
+                                  border: '1px solid #c0392b', 
+                                  borderRadius: '4px', 
+                                  cursor: 'pointer', 
+                                  fontWeight: '600', 
+                                  fontSize: '0.8rem' 
+                                }}
                               >
                                 Reject
                               </button>
@@ -268,23 +313,53 @@ const AdminOilCake = () => {
                           )}
                         </td>
                         <td style={{ padding: '12px 16px' }}>
-                          {req.status === 'Pending' && requestModes[req.id] === 'accepting' ? (
+                          <div style={{ display: 'flex', gap: '8px' }}>
                             <button
                               onClick={() => setExpandedId(expandedId === req.id ? null : req.id)}
                               style={{ padding: '6px 12px', background: '#3498db', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}
                             >
-                              {expandedId === req.id ? 'Hide Details' : 'Details'}
+                              {expandedId === req.id ? 'Hide' : 'View'}
                             </button>
-                          ) : (
-                            req.status !== 'Pending' && (
-                              <button
-                                onClick={() => setExpandedId(expandedId === req.id ? null : req.id)}
-                                style={{ padding: '6px 12px', background: '#3498db', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem' }}
-                              >
-                                {expandedId === req.id ? 'Hide' : 'View'}
+                            {req.status === 'Confirmed' && (
+                              <button onClick={async (e) => {
+                                e.stopPropagation();
+                                try {
+                                  const res = await fetch('http://localhost:5000/api/invoice-settings');
+                                  const settings = res.ok ? await res.json() : null;
+                                  
+                                  const totalAmt = Number(req.total_amount);
+                                  const subTotal = totalAmt / 1.05;
+                                  const tax = subTotal * 0.025;
+                                  
+                                  const invoiceData = {
+                                    type: "TAX INVOICE",
+                                    invoiceNo: `GT/OC-${req.id}`,
+                                    date: new Date(req.created_at).toLocaleDateString('en-GB'),
+                                    customerName: req.user?.username || 'Customer',
+                                    placeOfSupply: "24-Gujarat",
+                                    items: [{
+                                      productName: "GROUND NUT OIL CAKE (KHOL)",
+                                      hsn: "2305",
+                                      qty: Number(req.quantity_kg),
+                                      rate: Number(req.price_per_kg) / 1.05,
+                                      gstPercent: 5.00,
+                                      amount: subTotal
+                                    }],
+                                    subTotal: subTotal,
+                                    cgst: tax,
+                                    sgst: tax,
+                                    roundOff: totalAmt - (subTotal + tax + tax),
+                                    grandTotal: totalAmt
+                                  };
+                                  generateTaxInvoice(invoiceData, settings, true);
+                                } catch (err) {
+                                  console.error("Error generating invoice:", err);
+                                }
+                              }} style={{ padding: '6px 10px', background: '#2c3e50', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                <FaDownload /> INVOICE
                               </button>
-                            )
-                          )}
+                            )}
+                          </div>
                         </td>
                       </tr>
 

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { confirmAction } from '../utils/confirmAlert';
+import { generateTaxInvoice } from '../utils/invoiceGenerator';
+import { FaDownload } from 'react-icons/fa';
 import './AdminSellingRequests.css';
 
 const AdminSellingRequests = () => {
@@ -192,7 +194,35 @@ const AdminSellingRequests = () => {
     <div className="admin-selling-container fade-in">
       <div className="admin-selling-header">
         <h2>📦 Selling Requests Management</h2>
-        <button onClick={fetchSellingRequests} className="refresh-btn">🔄 Refresh</button>
+        <button 
+          onClick={fetchSellingRequests} 
+          style={{ 
+            padding: '8px 16px', 
+            backgroundColor: '#4CAF50', 
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '6px', 
+            cursor: 'pointer', 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '10px',
+            fontSize: '0.9rem',
+            fontWeight: 'bold',
+            boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+          }}
+        >
+          <span style={{ 
+            backgroundColor: '#2196F3', 
+            borderRadius: '4px', 
+            width: '24px', 
+            height: '24px', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            fontSize: '14px'
+          }}>🔄</span>
+          Refresh
+        </button>
       </div>
 
       <div className="selling-tabs" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
@@ -379,7 +409,46 @@ const AdminSellingRequests = () => {
                   {/* Completed visit report */}
                   {req.is_visited && req.status === 'Completed' && (
                     <div className="visit-report-box">
-                      <strong>  Visit Report</strong>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                        <strong style={{ fontSize: '1.1rem' }}>  Visit Report</strong>
+                        <button onClick={async (e) => {
+                          e.stopPropagation();
+                          try {
+                            const res = await fetch('http://localhost:5000/api/invoice-settings');
+                            const settings = res.ok ? await res.json() : null;
+                            
+                            const totalAmt = Number(req.stock_per_mound) * Number(req.our_price);
+                            const subTotal = totalAmt / 1.05;
+                            const tax = subTotal * 0.025;
+                            
+                            const invoiceData = {
+                              type: "Debit Memo",
+                              invoiceNo: `GT/PR-${req.request_id}`,
+                              date: new Date(req.createdAt || req.created_at || Date.now()).toLocaleDateString('en-GB'),
+                              customerName: req.user?.username || 'Customer',
+                              placeOfSupply: "24-Gujarat",
+                              items: [{
+                                productName: "RAW GROUND NUT (MOUND)",
+                                hsn: "1202",
+                                qty: Number(req.stock_per_mound),
+                                rate: Number(req.our_price) / 1.05,
+                                gstPercent: 5.00,
+                                amount: subTotal
+                              }],
+                              subTotal: subTotal,
+                              cgst: tax,
+                              sgst: tax,
+                              roundOff: totalAmt - (subTotal + tax + tax),
+                              grandTotal: totalAmt
+                            };
+                            generateTaxInvoice(invoiceData, settings, true);
+                          } catch (err) {
+                            console.error("Error generating memo:", err);
+                          }
+                        }} style={{ padding: '6px 12px', background: '#2e7d32', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <FaDownload /> Purchase Memo
+                        </button>
+                      </div>
                       <p><strong>Final Deal Price:</strong> ₹{req.final_price ?? 'N/A'}</p>
                       <p><strong>Delivered:</strong> {req.delivered_quantity ?? 'N/A'}</p>
                       <p><strong>Broker note:</strong> {req.broker_comments || 'No remarks'}</p>

@@ -70,6 +70,12 @@
   position: sticky;
   top: 0;
   z-index: 9;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.user-profile-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .user-profile-tabs .tab-btn {

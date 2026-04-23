@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import './BrokerDashboard.css';
 
 const BrokerDashboard = ({ user, onLogout }) => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('requests');
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -176,9 +178,9 @@ const BrokerDashboard = ({ user, onLogout }) => {
       <div className="broker-dashboard-header">
         <div className="broker-header-content">
           <h1>🤝 Broker Dashboard</h1>
-          <p>Welcome, <strong>{user?.username}</strong></p>
+          <p>{t('nav.welcome')}, <strong>{user?.username}</strong></p>
         </div>
-        <button onClick={onLogout} className="broker-logout-btn">Logout</button>
+        <button onClick={onLogout} className="broker-logout-btn">{t('nav.logout')}</button>
       </div>
 
       <div className="broker-dashboard-tabs">
@@ -211,7 +213,39 @@ const BrokerDashboard = ({ user, onLogout }) => {
       <div className="broker-dashboard-content fade-in">
         {(activeTab === 'requests' || activeTab === 'completed' || activeTab === 'rejected') && (
           <div className="requests-section">
-            <h2>{activeTab === 'requests' ? 'Assigned Selling Requests' : activeTab === 'completed' ? 'Completed Requests' : 'Rejected Requests'}</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+              <h2 style={{ margin: 0 }}>{activeTab === 'requests' ? 'Assigned Selling Requests' : activeTab === 'completed' ? 'Completed Requests' : 'Rejected Requests'}</h2>
+              <button 
+                onClick={fetchAssignedRequests} 
+                className="refresh-btn" 
+                style={{ 
+                  padding: '8px 16px', 
+                  fontSize: '0.85rem',
+                  backgroundColor: '#4CAF50',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  fontWeight: 'bold',
+                  boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                }}
+              >
+                <span style={{ 
+                  backgroundColor: '#2196F3', 
+                  borderRadius: '4px', 
+                  width: '24px', 
+                  height: '24px', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  fontSize: '14px'
+                }}>🔄</span>
+                Refresh
+              </button>
+            </div>
             {message && <div className={`msg ${message.includes(' ') || message.includes('success') ? 'success' : 'error'}`}>{message}</div>}
 
             {loading ? (

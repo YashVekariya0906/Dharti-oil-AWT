@@ -89,3 +89,20 @@
 .register-submit-btn:hover {
   background-color: #45a049;
 }
+
+/* Responsive */
+@media screen and (max-width: 480px) {
+  .register-card {
+    padding: 20px;
+  }
+  
+  .register-form .form-group {
+    margin-bottom: 12px;
+  }
+  
+  .register-form input,
+  .register-form textarea {
+    padding: 8px;
+    font-size: 14px;
+  }
+}

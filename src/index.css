@@ -7,3 +7,55 @@ html, body {
   width: 100%;
   overflow-x: hidden;
 }
+
+/* Hide Google Translate top bar */
+.goog-te-banner-frame.skiptranslate {
+  display: none !important;
+}
+body {
+  top: 0px !important;
+}
+/* Optional: Style the default translate dropdown slightly */
+.goog-te-combo {
+  padding: 4px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+}
+/* Global Responsive Utilities */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .show-on-mobile {
+    display: none !important;
+  }
+}
+
+.container {
+  width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+@media (min-width: 576px) { .container { max-width: 540px; } }
+@media (min-width: 768px) { .container { max-width: 720px; } }
+@media (min-width: 992px) { .container { max-width: 960px; } }
+@media (min-width: 1200px) { .container { max-width: 1140px; } }

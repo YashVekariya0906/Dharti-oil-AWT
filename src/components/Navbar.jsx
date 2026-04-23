@@ -1,12 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import './Navbar.css';
 import { FiShoppingCart, FiSearch } from 'react-icons/fi';
 import { FaRegHeart, FaBars, FaTimes } from 'react-icons/fa';
 
 const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user, onLoginClick, onRegisterClick, onBrokerLoginClick, onLogoutClick, onProfileClick, onWishlistClick, wishlistCount = 0, onCartClick, cartCount = 0, products = [], onProductSelect, onHomeClick, onBlogClick, onContactClick, onAboutClick, activePage = 'home' }) => {
+  const { t, i18n } = useTranslation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+
+
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
+  };
 
   const filteredProducts = products.filter(p => 
     p.product_name && p.product_name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -21,9 +29,10 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
       {/* Top Row */}
       <div className="navbar-top-row">
         <div className="navbar-top-content">
+          <div id="google_translate_element" style={{marginRight: 'auto'}}></div>
           {user ? (
             <>
-              <span style={{ color: '#555', fontSize: '14px', marginRight: '10px' }}>Welcome, {user.username}</span>
+              <span style={{ color: '#555', fontSize: '14px', marginRight: '10px' }}>{t('nav.welcome')}, {user.username}</span>
               {user.role === 'user' && onProfileClick && (
                 <button 
                   className="navbar-btn profile-btn" 
@@ -33,16 +42,16 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
                   }}
                   style={{ cursor: 'pointer' }}
                 >
-                  👤 Profile
+                  👤 {t('nav.profile')}
                 </button>
               )}
-              <button className="navbar-btn login-btn" onClick={onLogoutClick}>Logout</button>
+              <button className="navbar-btn login-btn" onClick={onLogoutClick}>{t('nav.logout')}</button>
             </>
           ) : (
             <>
-              <button className="navbar-btn login-btn" onClick={onLoginClick}>Login</button>
+              <button className="navbar-btn login-btn" onClick={onLoginClick}>{t('nav.login')}</button>
               <span className="navbar-divider">|</span>
-              <button className="navbar-btn register-btn" onClick={onRegisterClick}>Register</button>
+              <button className="navbar-btn register-btn" onClick={onRegisterClick}>{t('nav.register')}</button>
             </>
           )}
         </div>
@@ -63,10 +72,10 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
           <nav className="navbar-nav desktop-nav">
             <ul className="nav-links">
               <li className="nav-item">
-                <a href="#home" className={`nav-link ${activePage === 'home' ? 'active' : ''}`} onClick={onHomeClick}>Home</a>
+                <a href="#home" className={`nav-link ${activePage === 'home' ? 'active' : ''}`} onClick={onHomeClick}>{t('nav.home')}</a>
               </li>
               <li className="nav-item dropdown">
-                <a href="#shop" className={`nav-link ${activePage === 'shop' ? 'active' : ''}`}>Shop</a>
+                <a href="#shop" className={`nav-link ${activePage === 'shop' ? 'active' : ''}`}>{t('nav.shop')}</a>
                 <ul className="dropdown-menu">
                   {products.length > 0 ? (
                     products.map(item => (
@@ -85,18 +94,18 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
                       </li>
                     ))
                   ) : (
-                    <li><a href="#shop">No Products</a></li>
+                    <li><a href="#shop">{t('app.no_products')}</a></li>
                   )}
                 </ul>
               </li>
               <li className="nav-item">
-                <a href="#about" className={`nav-link ${activePage === 'about' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); if(onAboutClick) onAboutClick(); }}>About Us</a>
+                <a href="#about" className={`nav-link ${activePage === 'about' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); if(onAboutClick) onAboutClick(); }}>{t('nav.about')}</a>
               </li>
               <li className="nav-item">
-                <a href="#blog" className={`nav-link ${activePage === 'blog' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); onBlogClick(); }}>Blog</a>
+                <a href="#blog" className={`nav-link ${activePage === 'blog' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); onBlogClick(); }}>{t('nav.blog')}</a>
               </li>
               <li className="nav-item">
-                <a href="#contact" className={`nav-link ${activePage === 'contact' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); if (onContactClick) onContactClick(); }}>Contact</a>
+                <a href="#contact" className={`nav-link ${activePage === 'contact' ? 'active' : ''}`} onClick={(e) => { e.preventDefault(); if (onContactClick) onContactClick(); }}>{t('nav.contact')}</a>
               </li>
             </ul>
           </nav>
@@ -109,7 +118,7 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
                 <div className="navbar-search-dropdown">
                   <input 
                     type="text" 
-                    placeholder="Search products..." 
+                    placeholder={t('nav.search_placeholder')}
                     className="navbar-search-input"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -166,11 +175,11 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
               toggleMobileMenu(); 
               if(onHomeClick) onHomeClick(e); 
             }}>
-              Home
+              {t('nav.home')}
             </a>
           </li>
           <li className="mobile-dropdown-parent">
-            <a href="#shop" className={activePage === 'shop' ? 'active' : ''}>Shop</a>
+            <a href="#shop" className={activePage === 'shop' ? 'active' : ''}>{t('nav.shop')}</a>
             <ul className="mobile-dropdown">
               {products.length > 0 ? (
                 products.map(item => (
@@ -190,20 +199,20 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
                   </li>
                 ))
               ) : (
-                <li><a href="#shop" onClick={toggleMobileMenu}>No Products</a></li>
+                <li><a href="#shop" onClick={toggleMobileMenu}>{t('app.no_products')}</a></li>
               )}
             </ul>
           </li>
-          <li><a href="#about" className={activePage === 'about' ? 'active' : ''} onClick={(e) => { e.preventDefault(); if(onAboutClick) onAboutClick(); toggleMobileMenu(); }}>About Us</a></li>
-          <li><a href="#blog" className={activePage === 'blog' ? 'active' : ''} onClick={(e) => { e.preventDefault(); onBlogClick(); toggleMobileMenu(); }}>Blog</a></li>
-          <li><a href="#contact" className={activePage === 'contact' ? 'active' : ''} onClick={(e) => { e.preventDefault(); if (onContactClick) onContactClick(); toggleMobileMenu(); }}>Contact</a></li>
+          <li><a href="#about" className={activePage === 'about' ? 'active' : ''} onClick={(e) => { e.preventDefault(); if(onAboutClick) onAboutClick(); toggleMobileMenu(); }}>{t('nav.about')}</a></li>
+          <li><a href="#blog" className={activePage === 'blog' ? 'active' : ''} onClick={(e) => { e.preventDefault(); onBlogClick(); toggleMobileMenu(); }}>{t('nav.blog')}</a></li>
+          <li><a href="#contact" className={activePage === 'contact' ? 'active' : ''} onClick={(e) => { e.preventDefault(); if (onContactClick) onContactClick(); toggleMobileMenu(); }}>{t('nav.contact')}</a></li>
 
           <li className="mobile-bonus-icons">
             <div className="icon-wrapper search-icon" onClick={() => setIsSearchOpen(!isSearchOpen)}>
-              <FiSearch /> <span>Search</span>
+              <FiSearch /> <span>{t('nav.search')}</span>
             </div>
             <div className="icon-wrapper wishlist-icon" onClick={() => { if(onWishlistClick) onWishlistClick(); toggleMobileMenu(); }}>
-              <FaRegHeart /> <span>Wishlist {wishlistCount > 0 && `(${wishlistCount})`}</span>
+              <FaRegHeart /> <span>{t('nav.wishlist')} {wishlistCount > 0 && `(${wishlistCount})`}</span>
             </div>
           </li>
           
@@ -211,7 +220,7 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
             <li className="mobile-search-area">
               <input 
                  type="text" 
-                 placeholder="Search products..." 
+                 placeholder={t('nav.search_placeholder')}
                  className="navbar-search-input mobile-input"
                  value={searchQuery}
                  onChange={(e) => setSearchQuery(e.target.value)}
