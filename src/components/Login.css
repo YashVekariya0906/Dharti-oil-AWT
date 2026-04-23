@@ -83,3 +83,32 @@
 .login-submit-btn:hover {
   background-color: #45a049;
 }
+
+.forgot-password-container {
+  text-align: right;
+  margin-bottom: 15px;
+}
+
+.forgot-password-btn {
+  background: none;
+  border: none;
+  color: #4CAF50;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+}
+
+.forgot-password-btn:hover {
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media screen and (max-width: 480px) {
+  .login-card {
+    padding: 20px;
+  }
+  
+  .forgot-password-container {
+    text-align: center;
+  }
+}

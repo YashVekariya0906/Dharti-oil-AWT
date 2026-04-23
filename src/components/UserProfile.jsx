@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FaDownload } from 'react-icons/fa';
 import './UserProfile.css';
 import { generateReceipt } from '../utils/receiptGenerator';
+import { generateTaxInvoice } from '../utils/invoiceGenerator';
 
 const UserProfile = ({ user, logoUrl, onClose, onUpdate }) => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('profile');
   const [profileData, setProfileData] = useState(user || {});
   const [isEditing, setIsEditing] = useState(false);
@@ -193,7 +196,7 @@ const UserProfile = ({ user, logoUrl, onClose, onUpdate }) => {
     <div className="user-profile-modal-overlay">
       <div className="user-profile-modal slide-up">
         <div className="user-profile-header">
-          <h2>👤 My Profile</h2>
+          <h2>👤 {t('nav.profile')}</h2>
           <button onClick={onClose} className="close-btn">✕</button>
         </div>
 
@@ -783,7 +786,40 @@ const UserOrdersList = ({ user, logoUrl }) => {
   if (!orders || orders.length === 0) return <div style={{ textAlign: 'center', color: '#777', padding: '30px' }}>You haven't placed any orders yet.</div>;
 
   return (
-    <div className="orders-list" style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '10px' }}>
+    <>
+      <div className="orders-tab-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+        <h3 style={{ margin: 0 }}>Order History</h3>
+        <button 
+          onClick={fetchOrders} 
+          style={{ 
+            padding: '8px 16px', 
+            backgroundColor: '#4CAF50', 
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '6px', 
+            cursor: 'pointer', 
+            fontSize: '0.8rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            fontWeight: 'bold',
+            boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+          }}
+        >
+          <span style={{ 
+            backgroundColor: '#2196F3', 
+            borderRadius: '4px', 
+            width: '22px', 
+            height: '22px', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            fontSize: '12px'
+          }}>🔄</span>
+          Refresh
+        </button>
+      </div>
+      <div className="orders-list" style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '10px' }}>
       {orders.map(order => (
         <div key={order.order_id} style={{ border: '1px solid #ececec', padding: '15px', borderRadius: '8px', background: 'white', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '10px' }}>
@@ -797,41 +833,66 @@ const UserOrdersList = ({ user, logoUrl }) => {
               }}>
                 {order.status}
               </span>
-              <button onClick={(e) => {
-                e.stopPropagation();
-                try {
-                  const receiptData = {
-                    order_id: order.order_id,
-                    created_at: order.createdAt,
-                    shipping_address: order.shipping_address,
-                    contact_number: order.contact_number,
-                    items: order.items.map(i => ({
-                      product_name: i.product?.product_name || 'Product',
-                      quantity: i.quantity,
-                      product_price: i.price_at_purchase
-                    })),
-                    cgst: order.cgst,
-                    sgst: order.sgst,
-                    delivery_charge: order.delivery_charge,
-                    total_amount: order.total_amount
-                  };
-                  generateReceipt(receiptData, user, logoUrl, true);
-                } catch (err) {
-                  console.error("Error clicking download receipt", err);
-                }
-              }}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '6px',
-                  padding: '6px 14px', background: 'transparent',
-                  color: '#2c3e50', border: '1px solid #2c3e50',
-                  borderRadius: '20px', cursor: 'pointer', fontSize: '0.85rem',
-                  fontWeight: 'bold', transition: 'all 0.2s', boxShadow: 'none'
+              {order.status === 'Delivered' && (
+                <button onClick={async (e) => {
+                  e.stopPropagation();
+                  try {
+                    const res = await fetch('http://localhost:5000/api/invoice-settings');
+                    const settings = res.ok ? await res.json() : null;
+
+                    const baseSubTotal = order.items.reduce((acc, i) => acc + (i.price_at_purchase * i.quantity), 0);
+                    const isTaxIncluded = !order.cgst; // Fallback if old order
+                    
+                    const calculatedItems = order.items.map(i => {
+                      const totalLineAmt = i.price_at_purchase * i.quantity;
+                      const baseItemRate = isTaxIncluded ? (i.price_at_purchase / 1.05) : i.price_at_purchase;
+                      return {
+                        productName: i.product?.product_name || 'Groundnut Oil',
+                        hsn: "1508",
+                        qty: i.quantity,
+                        rate: baseItemRate,
+                        gstPercent: 5.00,
+                        amount: baseItemRate * i.quantity
+                      };
+                    });
+
+                    const subTotal = calculatedItems.reduce((acc, i) => acc + i.amount, 0);
+                    const cgst = subTotal * 0.025;
+                    const sgst = subTotal * 0.025;
+                    const grandTotal = Number(order.total_amount);
+                    const roundOff = grandTotal - (subTotal + cgst + sgst);
+
+                    const invoiceData = {
+                      type: "TAX INVOICE",
+                      invoiceNo: `GT/EC-${order.order_id}`,
+                      date: new Date(order.createdAt).toLocaleDateString('en-GB'),
+                      customerName: user.username,
+                      placeOfSupply: "24-Gujarat",
+                      items: calculatedItems,
+                      subTotal: subTotal,
+                      cgst: cgst,
+                      sgst: sgst,
+                      roundOff: roundOff,
+                      grandTotal: grandTotal
+                    };
+                    generateTaxInvoice(invoiceData, settings, true);
+                  } catch (err) {
+                    console.error("Error generating tax invoice", err);
+                  }
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#2c3e50'; e.currentTarget.style.color = 'white'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#2c3e50'; }}
-              >
-                <FaDownload /> Download Receipt
-              </button>
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                    padding: '6px 14px', background: 'transparent',
+                    color: '#2c3e50', border: '1px solid #2c3e50',
+                    borderRadius: '20px', cursor: 'pointer', fontSize: '0.85rem',
+                    fontWeight: 'bold', transition: 'all 0.2s', boxShadow: 'none'
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = '#2c3e50'; e.currentTarget.style.color = 'white'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#2c3e50'; }}
+                >
+                  <FaDownload /> Tax Invoice
+                </button>
+              )}
             </div>
           </div>
           <div style={{ fontSize: '0.9rem', color: '#555', marginBottom: '15px', display: 'flex', justifyContent: 'space-between' }}>
@@ -851,6 +912,7 @@ const UserOrdersList = ({ user, logoUrl }) => {
         </div>
       ))}
     </div>
+    </>
   );
 };
 
@@ -879,7 +941,40 @@ const UserSellingHistory = ({ user }) => {
   if (!requests || requests.length === 0) return <div style={{ textAlign: 'center', color: '#777', padding: '10px' }}>No selling requests yet.</div>;
 
   return (
-    <div className="user-selling-history">
+    <>
+      <div className="selling-history-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+        <h3 style={{ margin: 0 }}>Selling History</h3>
+        <button 
+          onClick={fetchHistory} 
+          style={{ 
+            padding: '8px 16px', 
+            backgroundColor: '#4CAF50', 
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '6px', 
+            cursor: 'pointer', 
+            fontSize: '0.8rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            fontWeight: 'bold',
+            boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+          }}
+        >
+          <span style={{ 
+            backgroundColor: '#2196F3', 
+            borderRadius: '4px', 
+            width: '22px', 
+            height: '22px', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            fontSize: '12px'
+          }}>🔄</span>
+          Refresh
+        </button>
+      </div>
+      <div className="user-selling-history">
       {requests.map(req => (
         <div key={req.request_id} style={{ border: '1px solid #ddd', padding: '15px', borderRadius: '8px', marginBottom: '15px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #eee', paddingBottom: '10px', marginBottom: '10px' }}>
@@ -933,7 +1028,46 @@ const UserSellingHistory = ({ user }) => {
 
           {req.is_visited && req.status === 'Completed' && (
             <div style={{ background: '#f9f9f9', borderLeft: '4px solid #4CAF50', padding: '15px', marginTop: '10px', borderRadius: '4px' }}>
-              <strong style={{ color: '#2e7d32', display: 'block', marginBottom: '10px' }}>  Request Completed</strong>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <strong style={{ color: '#2e7d32' }}>  Request Completed</strong>
+                <button onClick={async (e) => {
+                  e.stopPropagation();
+                  try {
+                    const res = await fetch('http://localhost:5000/api/invoice-settings');
+                    const settings = res.ok ? await res.json() : null;
+
+                    const totalAmt = Number(req.stock_per_mound) * Number(req.our_price);
+                    const subTotal = totalAmt / 1.05;
+                    const tax = subTotal * 0.025;
+                    
+                    const invoiceData = {
+                      type: "Debit Memo",
+                      invoiceNo: `GT/PR-${req.request_id}`,
+                      date: new Date(req.createdAt || req.created_at || Date.now()).toLocaleDateString('en-GB'),
+                      customerName: user?.username || 'Customer',
+                      placeOfSupply: "24-Gujarat",
+                      items: [{
+                        productName: "RAW GROUND NUT (MOUND)",
+                        hsn: "1202",
+                        qty: Number(req.stock_per_mound),
+                        rate: Number(req.our_price) / 1.05,
+                        gstPercent: 5.00,
+                        amount: subTotal
+                      }],
+                      subTotal: subTotal,
+                      cgst: tax,
+                      sgst: tax,
+                      roundOff: totalAmt - (subTotal + tax + tax),
+                      grandTotal: totalAmt
+                    };
+                    generateTaxInvoice(invoiceData, settings, true);
+                  } catch (err) {
+                    console.error("Error generating invoice:", err);
+                  }
+                }} style={{ padding: '6px 12px', background: '#2e7d32', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <FaDownload /> Download Memo
+                </button>
+              </div>
               {req.payment_method === 'Cheque' ? (
                 req.payment_proof && (
                   <div>
@@ -956,6 +1090,7 @@ const UserSellingHistory = ({ user }) => {
         </div>
       ))}
     </div>
+    </>
   );
 };
 
@@ -1149,7 +1284,38 @@ const OilCakePurchaseTab = ({ user }) => {
       )}
 
       {/* Past Orders */}
-      <h4 style={{ color: '#2c3e50', marginBottom: '12px' }}> My Oil Cake Requests</h4>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+        <h4 style={{ color: '#2c3e50', margin: 0 }}> My Oil Cake Requests</h4>
+        <button 
+          onClick={loadData} 
+          style={{ 
+            padding: '6px 12px', 
+            backgroundColor: '#4CAF50', 
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '6px', 
+            cursor: 'pointer', 
+            fontSize: '0.75rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontWeight: 'bold',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          }}
+        >
+          <span style={{ 
+            backgroundColor: '#2196F3', 
+            borderRadius: '3px', 
+            width: '18px', 
+            height: '18px', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            fontSize: '10px'
+          }}>🔄</span>
+          Refresh
+        </button>
+      </div>
       {pastOrders.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '30px', background: 'white', borderRadius: '10px', color: '#999' }}>
           <div style={{ fontSize: '2rem' }}> </div>
@@ -1162,26 +1328,58 @@ const OilCakePurchaseTab = ({ user }) => {
             return (
               <div key={req.id} style={{ background: 'white', borderRadius: '10px', padding: '16px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: '1px solid #f0f0f0' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                  <strong style={{ color: '#2c3e50' }}>Request #{req.id}</strong>
+                  <div style={{display:'flex', alignItems: 'center', gap: '10px'}}>
+                    <strong style={{ color: '#2c3e50' }}>Request #{req.id}</strong>
+                    {req.status === 'Confirmed' && (
+                      <button onClick={async (e) => {
+                        e.stopPropagation();
+                        try {
+                          const res = await fetch('http://localhost:5000/api/invoice-settings');
+                          const settings = res.ok ? await res.json() : null;
+
+                          const totalAmt = Number(req.total_amount);
+                          const subTotal = totalAmt / 1.05;
+                          const tax = subTotal * 0.025;
+                          
+                          const invoiceData = {
+                            type: "TAX INVOICE",
+                            invoiceNo: `GT/OC-${req.id}`,
+                            date: new Date(req.created_at).toLocaleDateString('en-GB'),
+                            customerName: user?.username || 'Customer',
+                            placeOfSupply: "24-Gujarat",
+                            items: [{
+                              productName: "GROUND NUT OIL CAKE (KHOL)",
+                              hsn: "2305",
+                              qty: Number(req.quantity_kg),
+                              rate: Number(req.price_per_kg) / 1.05,
+                              gstPercent: 5.00,
+                              amount: subTotal
+                            }],
+                            subTotal: subTotal,
+                            cgst: tax,
+                            sgst: tax,
+                            roundOff: totalAmt - (subTotal + tax + tax),
+                            grandTotal: totalAmt
+                          };
+                          generateTaxInvoice(invoiceData, settings, true);
+                        } catch (err) {
+                           console.error("Error generating invoice:", err);
+                        }
+                      }} style={{ padding: '4px 10px', background: '#3498db', color: '#fff', border: 'none', borderRadius: '20px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                         Download INVOICE
+                      </button>
+                    )}
+                  </div>
                   <span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: '700', background: st.bg, color: st.color }}>{st.label}</span>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.9rem', color: '#555' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px', fontSize: '0.9rem', color: '#555' }}>
                   <span><strong>Quantity:</strong> {req.quantity_kg} KG</span>
                   <span><strong>Rate:</strong> ₹{req.price_per_kg}/kg</span>
                   <span><strong>Total:</strong> <span style={{ color: '#27ae60', fontWeight: '700' }}>₹{req.total_amount}</span></span>
                   <span><strong>Date:</strong> {new Date(req.created_at).toLocaleDateString()}</span>
                 </div>
                 <div style={{ marginTop: '8px', fontSize: '0.85rem', color: '#777' }}>
-                  {req.status === 'Confirmed' && (
-                    <div style={{ background: '#e8f5e9', color: '#2e7d32', padding: '10px', borderRadius: '6px', fontWeight: 'bold', marginBottom: '10px', borderLeft: '4px solid #4caf50' }}>
-                      your oil cake requied accepted by admin you can come our industry and take it
-                    </div>
-                  )}
-                  {req.status === 'Rejected' && (
-                    <div style={{ background: '#ffebee', color: '#c62828', padding: '10px', borderRadius: '6px', fontWeight: 'bold', marginBottom: '10px', borderLeft: '4px solid #f44336' }}>
-                      Your request has been rejected by admin.
-                    </div>
-                  )}
+
                 </div>
                 {req.admin_note && (
                   <div style={{ marginTop: '5px', background: '#f5f5f5', padding: '8px 12px', borderRadius: '6px', borderLeft: '3px solid #666', fontSize: '0.85rem', color: '#333' }}>

@@ -196,7 +196,38 @@ const AdminBrokerForm = () => {
 
   return (
     <div className="admin-broker-container fade-in">
-      <h2>Add New Broker</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h2 style={{ margin: 0 }}>Add New Broker</h2>
+        <button 
+          onClick={fetchBrokers} 
+          style={{ 
+            padding: '8px 16px', 
+            backgroundColor: '#4CAF50', 
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '6px', 
+            cursor: 'pointer', 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '10px',
+            fontSize: '0.9rem',
+            fontWeight: 'bold',
+            boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+          }}
+        >
+          <span style={{ 
+            backgroundColor: '#2196F3', 
+            borderRadius: '4px', 
+            width: '24px', 
+            height: '24px', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            fontSize: '14px'
+          }}>🔄</span>
+          Refresh List
+        </button>
+      </div>
       {message && <div className={`message ${message.includes('Error') ? 'error' : 'success'}`}>{message}</div>}
       
       <form onSubmit={handleSubmit} className="admin-broker-form">

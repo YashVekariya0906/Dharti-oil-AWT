@@ -471,12 +471,31 @@
 }
 
 @media (max-width: 768px) {
+  .admin-selling-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+
+  .selling-tabs {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .tab-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 10px;
+    font-size: 13px;
+  }
+
   .requests-grid {
     grid-template-columns: 1fr;
   }
 
   .broker-selection-panel {
     width: 100%;
+    border-radius: 0;
   }
 }
 

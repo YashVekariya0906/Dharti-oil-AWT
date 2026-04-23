@@ -8,6 +8,49 @@
   </head>
   <body>
     <div id="root"></div>
+
+    <script type="text/javascript">
+      // Prevent React from crashing when Google Translate mutates the DOM
+      if (typeof Node === 'function' && Node.prototype) {
+        const originalRemoveChild = Node.prototype.removeChild;
+        Node.prototype.removeChild = function(child) {
+          if (child.parentNode !== this) {
+            console.warn('Caught Google Translate DOM mutation error in removeChild');
+            return child;
+          }
+          return originalRemoveChild.apply(this, arguments);
+        };
+        const originalInsertBefore = Node.prototype.insertBefore;
+        Node.prototype.insertBefore = function(newNode, referenceNode) {
+          if (referenceNode && referenceNode.parentNode !== this) {
+            console.warn('Caught Google Translate DOM mutation error in insertBefore');
+            return newNode;
+          }
+          return originalInsertBefore.apply(this, arguments);
+        };
+      }
+
+      function googleTranslateElementInit() {
+        const checkExist = setInterval(function() {
+          if (document.getElementById('google_translate_element')) {
+            clearInterval(checkExist);
+            new google.translate.TranslateElement({
+              pageLanguage: 'en',
+              includedLanguages: 'en,gu',
+              layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+              autoDisplay: false
+            }, 'google_translate_element');
+          }
+        }, 100); 
+      }
+    </script>
+    <style>
+      /* Force hide the Google Translate top banner robustly */
+      .goog-te-banner-frame { display: none !important; }
+      .goog-te-banner-frame.skiptranslate { display: none !important; }
+      body { top: 0px !important; position: static !important; }
+    </style>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async defer></script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

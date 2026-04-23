@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import Navbar from './components/Navbar'
 import Register from './components/Register'
 import Login from './components/Login'
@@ -17,6 +18,7 @@ import { FaHeart, FaShoppingBag, FaInfoCircle } from 'react-icons/fa';
 import './App.css'
 
 function App() {
+  const { t } = useTranslation();
   const [config, setConfig] = useState({
     logo_text: 'Dharti',
     logo_highlight: 'Amrut',
@@ -361,9 +363,9 @@ function App() {
                 <ImageSlider images={[navbarData.I1_path, navbarData.I2_path, navbarData.I3_path, navbarData.I4_path, navbarData.I5_path].filter(Boolean)} />
 
                 <section className="features-section">
-                  <h2>Our Products</h2>
+                  <h2>{t('app.our_products')}</h2>
                   {loading ? (
-                    <p style={{ textAlign: 'center' }}>Loading products from database...</p>
+                    <p style={{ textAlign: 'center' }}>{t('app.loading_products')}</p>
                   ) : (
                     <div className="product-grid">
                       {products.length > 0 ? (
@@ -391,10 +393,10 @@ function App() {
                               ) : <div className="no-image-placeholder"></div>}
 
                               <div className="hover-actions">
-                                <button className="hover-action-btn" title="Add to Cart" onClick={() => handleAddToCart(item)}>
+                                <button className="hover-action-btn" title={t('app.add_to_cart')} onClick={() => handleAddToCart(item)}>
                                   <FaShoppingBag />
                                 </button>
-                                <button className="hover-action-btn" title="More Info" onClick={() => {
+                                <button className="hover-action-btn" title={t('app.more_info')} onClick={() => {
                                   setSelectedProductInfo(item);
                                   window.scrollTo({ top: 0, behavior: 'smooth' });
                                 }}><FaInfoCircle /></button>
@@ -411,7 +413,7 @@ function App() {
                           </div>
                         ))
                       ) : (
-                        <p>No products found in the database.</p>
+                        <p>{t('app.no_products')}</p>
                       )}
                     </div>
                   )}

@@ -135,3 +135,25 @@
   color: #777;
   font-size: 14px;
 }
+
+/* Responsive */
+@media screen and (max-width: 768px) {
+  .footer-col {
+    min-width: 100%;
+    margin-bottom: 40px;
+    text-align: center;
+  }
+  
+  .footer-heading::after {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .social-icons {
+    justify-content: center;
+  }
+  
+  .timing-box {
+    align-items: center;
+  }
+}
