@@ -3,11 +3,11 @@ require('dotenv').config();
 
 // Create Sequelize instance
 const sequelize = new Sequelize(
-  process.env.DB_NAME || 'dharti_oil',
-  process.env.DB_USER || 'root',
-  process.env.DB_PASSWORD || '',
+  process.env.MYSQLDATABASE,
+  process.env.MYSQLUSER,
+  process.env.MYSQLPASSWORD,
   {
-    host: process.env.DB_HOST || 'localhost',
+    host: process.env.MYSQLHOST,
     dialect: 'mysql',
     logging: false, // Set to console.log to see SQL queries
     pool: {
