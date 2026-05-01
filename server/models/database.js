@@ -1,13 +1,19 @@
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
+const dbHost = (process.env.DB_HOST || '127.0.0.1').toLowerCase() === 'localhost'
+  ? '127.0.0.1'
+  : process.env.DB_HOST || '127.0.0.1';
+const dbPort = process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 3306;
+
 // Create Sequelize instance
 const sequelize = new Sequelize(
   process.env.DB_NAME || 'dharti_oil',
   process.env.DB_USER || 'root',
   process.env.DB_PASSWORD || '',
   {
-    host: process.env.DB_HOST || 'localhost',
+    host: dbHost,
+    port: dbPort,
     dialect: 'mysql',
     logging: false, // Set to console.log to see SQL queries
     pool: {

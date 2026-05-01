@@ -14,6 +14,8 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
+    document.cookie = `googtrans=/en/${lng}; path=/`;
+    window.location.reload();
   };
 
   const filteredProducts = products.filter(p => 
@@ -29,7 +31,17 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
       {/* Top Row */}
       <div className="navbar-top-row">
         <div className="navbar-top-content">
-          <div id="google_translate_element" style={{marginRight: 'auto'}}></div>
+          <div id="google_translate_element" style={{ display: 'none' }}></div>
+          <div className="language-dropdown-container">
+            <select
+              className="language-dropdown"
+              value={i18n.language || 'en'}
+              onChange={(e) => changeLanguage(e.target.value)}
+            >
+              <option value="en">English</option>
+              <option value="gu">ગુજરાતી</option>
+            </select>
+          </div>
           {user ? (
             <>
               <span style={{ color: '#555', fontSize: '14px', marginRight: '10px' }}>{t('nav.welcome')}, {user.username}</span>
