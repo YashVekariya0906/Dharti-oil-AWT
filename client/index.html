@@ -45,15 +45,54 @@
       }
     </script>
     <style>
-      /* Force hide the Google Translate top banner robustly */
-      .goog-te-banner-frame { display: none !important; visibility: hidden !important; }
-      .goog-te-banner-frame.skiptranslate { display: none !important; }
-      .skiptranslate > iframe.goog-te-banner-frame { display: none !important; }
-      body { top: 0px !important; position: static !important; margin-top: 0px !important; padding-top: 0px !important; }
-      html { top: 0px !important; margin-top: 0px !important; padding-top: 0px !important; }
-      /* Hide the tooltip on hover */
-      .goog-tooltip, .goog-tooltip:hover { display: none !important; }
-      .goog-text-highlight { background-color: transparent !important; border: none !important; box-shadow: none !important; }
+      /* =====================================================
+         Google Translate Bar — Total Suppression
+         Prevents ANY top offset or bar from appearing
+         ===================================================== */
+
+      /* Hide the injected translate banner frame completely */
+      .goog-te-banner-frame,
+      .goog-te-banner-frame.skiptranslate,
+      .skiptranslate > iframe,
+      .skiptranslate > iframe.goog-te-banner-frame,
+      #goog-gt-tt,
+      .goog-te-gadget,
+      .goog-te-gadget-simple {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        max-height: 0 !important;
+        overflow: hidden !important;
+      }
+
+      /* Google Translate pushes body down with `position: relative; top: 40px`.
+         We override ALL of this aggressively. */
+      body {
+        top: 0 !important;
+        position: static !important;
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+        transform: none !important;
+      }
+
+      html {
+        top: 0 !important;
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+      }
+
+      /* Hide Google tooltips and highlights */
+      .goog-tooltip,
+      .goog-tooltip:hover,
+      .goog-te-balloon-frame {
+        display: none !important;
+      }
+
+      .goog-text-highlight {
+        background-color: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+      }
     </style>
     <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async defer></script>
     <script type="module" src="/src/main.jsx"></script>

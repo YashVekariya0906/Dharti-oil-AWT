@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import './Navbar.css';
-import { FiShoppingCart, FiSearch } from 'react-icons/fi';
+import { FiShoppingCart, FiSearch, FiChevronDown } from 'react-icons/fi';
 import { FaRegHeart, FaBars, FaTimes } from 'react-icons/fa';
 
 const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user, onLoginClick, onRegisterClick, onBrokerLoginClick, onLogoutClick, onProfileClick, onWishlistClick, wishlistCount = 0, onCartClick, cartCount = 0, products = [], onProductSelect, onHomeClick, onBlogClick, onContactClick, onAboutClick, activePage = 'home' }) => {
@@ -9,14 +9,54 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLangOpen, setIsLangOpen] = useState(false);
+  const langRef = useRef(null);
 
 
+
+  // Suppress Google Translate bar injected at top of page
+  useEffect(() => {
+    const suppressGoogleBar = () => {
+      // Hide the Google translate top frame
+      const gtFrame = document.querySelector('.goog-te-banner-frame, #goog-gt-tt, .skiptranslate > iframe');
+      if (gtFrame) {
+        gtFrame.style.display = 'none';
+        gtFrame.style.visibility = 'hidden';
+      }
+      // Forcefully reset body top pushed by Google translate
+      if (document.body.style.top) {
+        document.body.style.top = '0px';
+      }
+    };
+    suppressGoogleBar();
+    const observer = new MutationObserver(suppressGoogleBar);
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
+    return () => observer.disconnect();
+  }, []);
+
+  // Close lang dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (langRef.current && !langRef.current.contains(e.target)) {
+        setIsLangOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng);
     document.cookie = `googtrans=/en/${lng}; path=/`;
+    setIsLangOpen(false);
     window.location.reload();
   };
+
+  const languages = [
+    { code: 'en', label: 'English', flag: '🇬🇧' },
+    { code: 'gu', label: 'ગુજરાતી', flag: '🇮🇳' },
+  ];
+  const currentLang = languages.find(l => l.code === (i18n.language || 'en')) || languages[0];
 
   const filteredProducts = products.filter(p => 
     p.product_name && p.product_name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -32,15 +72,34 @@ const Navbar = ({ logoData, logoText = 'Dharti ', logoHighlight = 'Amrut', user,
       <div className="navbar-top-row">
         <div className="navbar-top-content">
           <div id="google_translate_element" style={{ display: 'none' }}></div>
-          <div className="language-dropdown-container">
-            <select
-              className="language-dropdown"
-              value={i18n.language || 'en'}
-              onChange={(e) => changeLanguage(e.target.value)}
+          <div className="language-dropdown-container" ref={langRef}>
+            <button
+              className={`lang-trigger ${isLangOpen ? 'open' : ''}`}
+              onClick={() => setIsLangOpen(!isLangOpen)}
+              aria-haspopup="listbox"
+              aria-expanded={isLangOpen}
             >
-              <option value="en">English</option>
-              <option value="gu">ગુજરાતી</option>
-            </select>
+              <span className="lang-flag">{currentLang.flag}</span>
+              <span className="lang-label">{currentLang.label}</span>
+              <FiChevronDown className="lang-chevron" />
+            </button>
+            {isLangOpen && (
+              <ul className="lang-menu" role="listbox">
+                {languages.map((lang) => (
+                  <li
+                    key={lang.code}
+                    role="option"
+                    aria-selected={lang.code === currentLang.code}
+                    className={`lang-option ${lang.code === currentLang.code ? 'active' : ''}`}
+                    onClick={() => changeLanguage(lang.code)}
+                  >
+                    <span className="lang-flag">{lang.flag}</span>
+                    <span>{lang.label}</span>
+                    {lang.code === currentLang.code && <span className="lang-check">✓</span>}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           {user ? (
             <>
