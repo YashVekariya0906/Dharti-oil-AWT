@@ -164,13 +164,13 @@ const Blog = () => {
                     }}
                   >
                     <div className="blog-hero-overlay">
-                      <h1 className="blog-hero-title-large">{blog.title}</h1>
+                      {/* Title removed from image banner as per user request */}
                     </div>
                   </div>
                 </AnimatedCard>
               ) : (
                 <div className="blog-hero">
-                  <h1 className="blog-hero-title">{blog.title || 'Dharti Oil Blog'}</h1>
+                  <h1 className="blog-hero-title">Dharti Oil Blog</h1>
                   <p className="blog-hero-sub">Pure knowledge, trusted insights</p>
                 </div>
               )}
@@ -179,13 +179,21 @@ const Blog = () => {
                 {/* Meta */}
                 <AnimatedCard delay={80}>
                   <div className="blog-meta-bar">
-                    <span className="blog-meta-author">✍️ {blog.author}</span>
+                    <div className="blog-meta-left">
+                      <span className="blog-meta-author">🔥 {blog.author}</span>
+                      {blog.title && (
+                        <span className="blog-meta-tagline">{blog.title}</span>
+                      )}
+                    </div>
                     <span className="blog-meta-date">
-                      {new Date(blog.createdAt).toLocaleDateString('en-IN', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
+                      {blog.createdAt && !isNaN(new Date(blog.createdAt).getTime()) ? 
+                        new Date(blog.createdAt).toLocaleDateString('en-IN', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        }) : 
+                        'Recently Published'
+                      }
                     </span>
                   </div>
                 </AnimatedCard>

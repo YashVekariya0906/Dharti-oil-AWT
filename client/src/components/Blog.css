@@ -130,10 +130,26 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
+.blog-meta-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .blog-meta-author {
   font-size: 0.9rem;
   font-weight: 600;
   color: #1a5c2a;
+}
+
+.blog-meta-tagline {
+  font-size: 0.82rem;
+  color: #8c7a5a;
+  font-style: italic;
+  font-family: 'Lora', serif;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+  padding-left: 2px;
 }
 
 .blog-meta-date {
@@ -292,7 +308,11 @@
   .blog-meta-bar {
     flex-direction: column;
     align-items: flex-start;
-    gap: 4px;
+    gap: 6px;
     padding: 12px 18px;
+  }
+
+  .blog-meta-left {
+    gap: 3px;
   }
 }

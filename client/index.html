@@ -50,7 +50,7 @@
          Prevents ANY top offset or bar from appearing
          ===================================================== */
 
-      /* Hide the injected translate banner frame completely */
+      /* Reset Google Translate styles to allow CSS-based hover reveal */
       .goog-te-banner-frame,
       .goog-te-banner-frame.skiptranslate,
       .skiptranslate > iframe,
@@ -58,15 +58,9 @@
       #goog-gt-tt,
       .goog-te-gadget,
       .goog-te-gadget-simple {
-        display: none !important;
-        visibility: hidden !important;
-        height: 0 !important;
-        max-height: 0 !important;
-        overflow: hidden !important;
+        /* Styles moved to Navbar.css for better control */
       }
 
-      /* Google Translate pushes body down with `position: relative; top: 40px`.
-         We override ALL of this aggressively. */
       body {
         top: 0 !important;
         position: static !important;
