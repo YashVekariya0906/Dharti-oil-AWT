@@ -14,6 +14,7 @@ import ContactUs from './components/ContactUs'
 import AboutUsSection from './components/AboutUsSection'
 import WishlistDrawer from './components/WishlistDrawer'
 import CartDrawer from './components/CartDrawer'
+import ReturnPolicy from './components/ReturnPolicy'
 import { FaHeart, FaShoppingBag, FaInfoCircle } from 'react-icons/fa';
 import './App.css'
 
@@ -43,6 +44,7 @@ function App() {
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [directCheckout, setDirectCheckout] = useState(false);
+  const [showReturnPolicy, setShowReturnPolicy] = useState(false);
 
   const handleAddToCart = (product) => {
     if (!user) {
@@ -194,6 +196,7 @@ function App() {
     setShowBlog(false);
     setShowContact(false);
     setShowAboutUs(false);
+    setShowReturnPolicy(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -257,6 +260,8 @@ function App() {
     activePage = 'contact';
   } else if (showAboutUs) {
     activePage = 'about';
+  } else if (showReturnPolicy) {
+    activePage = 'return-policy';
   }
 
   return (
@@ -313,6 +318,7 @@ function App() {
               setShowContact(false);
               setShowBlog(false);
               setSelectedProductInfo(null);
+              setShowReturnPolicy(false);
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             activePage={activePage}
@@ -358,6 +364,8 @@ function App() {
               <ContactUs user={user} onRequireLogin={() => setShowLogin(true)} />
             ) : showAboutUs ? (
               <AboutUsSection />
+            ) : showReturnPolicy ? (
+              <ReturnPolicy />
             ) : (
               <>
                 <ImageSlider images={[navbarData.I1_path, navbarData.I2_path, navbarData.I3_path, navbarData.I4_path, navbarData.I5_path].filter(Boolean)} />
@@ -436,6 +444,14 @@ function App() {
             products={products}
             onProductSelect={(item) => {
               setSelectedProductInfo(item);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onReturnPolicyClick={() => {
+              setShowReturnPolicy(true);
+              setShowBlog(false);
+              setShowContact(false);
+              setShowAboutUs(false);
+              setSelectedProductInfo(null);
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
           />
