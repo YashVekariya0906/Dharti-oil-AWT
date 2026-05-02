@@ -1,4 +1,6 @@
 const { Sequelize } = require('sequelize');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 
 const dbHost = (process.env.DB_HOST || '127.0.0.1').toLowerCase() === 'localhost'
@@ -21,7 +23,16 @@ const sequelize = new Sequelize(
       min: 0,
       acquire: 30000,
       idle: 10000
-    }
+    },
+    ...(process.env.DB_SSL === 'true' && {
+      dialectOptions: {
+        ssl: {
+          require: true,
+          rejectUnauthorized: true, // More secure, requires CA match
+          ca: process.env.DB_CA_CERT ? [fs.readFileSync(path.join(__dirname, '..', process.env.DB_CA_CERT))] : undefined
+        }
+      }
+    })
   }
 );
 
