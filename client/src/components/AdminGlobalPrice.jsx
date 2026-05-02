@@ -12,7 +12,7 @@ const AdminGlobalPrice = () => {
 
   const fetchPrice = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/admin/global-price');
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/admin/global-price');
       const data = await res.json();
       setCurrentPrice(data.current_price || 0);
     } catch (error) {
@@ -36,7 +36,7 @@ const AdminGlobalPrice = () => {
 
       console.log('📨 Sending API request:', { current_price: priceValue });
 
-      const res = await fetch('http://localhost:5000/api/admin/global-price', {
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/admin/global-price', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ current_price: priceValue })

@@ -16,7 +16,7 @@ const AdminUsersList = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:5000/api/admin/users');
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/admin/users');
       const data = await res.json();
       if (res.ok) {
         setUsers(data);
@@ -40,7 +40,7 @@ const AdminUsersList = () => {
     }
     
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/users/${userId}/role`, {
+      const res = await fetch(import.meta.env.VITE_API_URL + `/api/admin/users/${userId}/role`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: newRole })

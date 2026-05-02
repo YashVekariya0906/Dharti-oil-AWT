@@ -24,7 +24,7 @@ const Login = ({ onBack, onLogin, onSwitchToRegister }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5000/api/login', {
+      const response = await fetch(import.meta.env.VITE_API_URL + '/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -47,7 +47,7 @@ const Login = ({ onBack, onLogin, onSwitchToRegister }) => {
     setLoading(true);
     setForgotMessage('');
     try {
-      const res = await fetch('http://localhost:5000/api/forgot-password/send-otp', {
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/forgot-password/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: forgotData.email })
@@ -75,7 +75,7 @@ const Login = ({ onBack, onLogin, onSwitchToRegister }) => {
     setLoading(true);
     setForgotMessage('');
     try {
-      const res = await fetch('http://localhost:5000/api/forgot-password/reset', {
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/forgot-password/reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

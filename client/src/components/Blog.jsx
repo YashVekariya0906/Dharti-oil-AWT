@@ -104,7 +104,7 @@ const Blog = () => {
   const fetchBlogs = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/blogs');
+      const response = await fetch(import.meta.env.VITE_API_URL + '/api/blogs');
       if (!response.ok) throw new Error('Failed to fetch blogs');
       const data = await response.json();
       setBlogs(data);
@@ -159,7 +159,7 @@ const Blog = () => {
                     style={{
                       backgroundImage: `url(${blog.banner_image.startsWith('http')
                           ? blog.banner_image
-                          : `http://localhost:5000${blog.banner_image}`
+                          : import.meta.env.VITE_API_URL + `${blog.banner_image}`
                         })`
                     }}
                   >

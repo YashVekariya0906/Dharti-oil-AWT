@@ -23,7 +23,7 @@ const AdminBlogForm = () => {
 
   const fetchBlogs = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/admin/blogs');
+      const response = await fetch(import.meta.env.VITE_API_URL + '/api/admin/blogs');
       if (response.ok) {
         const data = await response.json();
         setBlogs(data);
@@ -90,8 +90,8 @@ const AdminBlogForm = () => {
       }
 
       const url = editingId
-        ? `http://localhost:5000/api/blogs/${editingId}`
-        : 'http://localhost:5000/api/blogs';
+        ? import.meta.env.VITE_API_URL + `/api/blogs/${editingId}`
+        : import.meta.env.VITE_API_URL + '/api/blogs';
 
       const method = editingId ? 'PUT' : 'POST';
 
@@ -127,7 +127,7 @@ const AdminBlogForm = () => {
       status: blog.status
     });
     setEditingId(blog.id);
-    setPreviewImage(blog.banner_image ? `http://localhost:5000${blog.banner_image}` : null);
+    setPreviewImage(blog.banner_image ? import.meta.env.VITE_API_URL + `${blog.banner_image}` : null);
     setMessage('');
   };
 
@@ -138,7 +138,7 @@ const AdminBlogForm = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/blogs/${id}`, {
+      const response = await fetch(import.meta.env.VITE_API_URL + `/api/blogs/${id}`, {
         method: 'DELETE'
       });
 

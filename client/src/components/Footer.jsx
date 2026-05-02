@@ -17,7 +17,7 @@ export default function Footer({ logoData, onHomeClick, products = [], onProduct
   });
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/footer')
+    fetch(import.meta.env.VITE_API_URL + '/api/footer')
       .then(res => res.ok ? res.json() : null)
       .then(d => {
         if(d && d.id) {

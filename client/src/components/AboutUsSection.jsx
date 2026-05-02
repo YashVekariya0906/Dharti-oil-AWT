@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './AboutUsSection.css';
 
-const API_BASE = 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_URL + '';
 
 const AboutUsSection = () => {
   const [aboutData, setAboutData] = useState(null);
