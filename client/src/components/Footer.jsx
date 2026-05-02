@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaFacebookF, FaInstagram } from 'react-icons/fa';
 import './Footer.css';
 
-export default function Footer({ logoData, onHomeClick, products = [], onProductSelect }) {
+export default function Footer({ logoData, onHomeClick, products = [], onProductSelect, onReturnPolicyClick }) {
   const [data, setData] = useState({
     company_name: 'Dharti Oil',
     address: 'B-16, Privilon, Behind ISKCON Temple, Ambli-Bopal Road, Ahmedabad-380059.',
@@ -86,7 +86,19 @@ export default function Footer({ logoData, onHomeClick, products = [], onProduct
           <h3 className="footer-heading">Support & Info</h3>
           <ul className="footer-links" style={{marginBottom: '25px'}}>
             <li><a href={data.privacy_policy_link || '#'}>Privacy Policy</a></li>
-            <li><a href={data.return_exchange_link || '#'}>Return and Exchange</a></li>
+            <li>
+              <a 
+                href={data.return_exchange_link || '#'} 
+                onClick={(e) => {
+                  if (onReturnPolicyClick) {
+                    e.preventDefault();
+                    onReturnPolicyClick();
+                  }
+                }}
+              >
+                Return and Exchange
+              </a>
+            </li>
           </ul>
 
           <h3 className="footer-heading">Operating Hours</h3>
