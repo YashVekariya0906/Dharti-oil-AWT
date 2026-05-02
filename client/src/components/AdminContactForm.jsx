@@ -17,7 +17,7 @@ export default function AdminContactForm() {
   const [imagePreview, setImagePreview] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/contact-details')
+    fetch(import.meta.env.VITE_API_URL + '/api/contact-details')
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (data) {
@@ -32,7 +32,7 @@ export default function AdminContactForm() {
             existing_image: data.banner_image || ''
           });
           if (data.banner_image) {
-            setImagePreview(data.banner_image.startsWith('http') ? data.banner_image : `http://localhost:5000${data.banner_image}`);
+            setImagePreview(data.banner_image.startsWith('http') ? data.banner_image : import.meta.env.VITE_API_URL + `${data.banner_image}`);
           }
         }
       })
@@ -61,7 +61,7 @@ export default function AdminContactForm() {
     });
 
     try {
-      const res = await fetch('http://localhost:5000/api/contact-details/update', {
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/contact-details/update', {
         method: 'POST',
         body: submitData
       });

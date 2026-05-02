@@ -37,7 +37,7 @@ export default function ContactUs({ user, onRequireLogin }) {
     }
 
     // Fetch Admin contact details
-    fetch('http://localhost:5000/api/contact-details')
+    fetch(import.meta.env.VITE_API_URL + '/api/contact-details')
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (data) {
@@ -78,7 +78,7 @@ export default function ContactUs({ user, onRequireLogin }) {
     setStatusMsg({ type: '', text: '' });
 
     try {
-      const res = await fetch('http://localhost:5000/api/contact-inquiry', {
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/contact-inquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, user_id: user.user_id })
@@ -99,7 +99,7 @@ export default function ContactUs({ user, onRequireLogin }) {
   };
 
   const bannerStyle = details.banner_image 
-    ? { backgroundImage: `url(${details.banner_image.startsWith('http') ? details.banner_image : 'http://localhost:5000'+details.banner_image})` }
+    ? { backgroundImage: `url(${details.banner_image.startsWith('http') ? details.banner_image : import.meta.env.VITE_API_URL + ''+details.banner_image})` }
     : { background: '#2d8a48' }; // Fallback color
 
   return (

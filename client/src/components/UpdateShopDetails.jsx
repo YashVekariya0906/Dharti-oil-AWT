@@ -14,7 +14,7 @@ export default function UpdateShopDetails() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/shop-details')
+    fetch(import.meta.env.VITE_API_URL + '/api/shop-details')
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (data) {
@@ -36,7 +36,7 @@ export default function UpdateShopDetails() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const res = await fetch('http://localhost:5000/api/shop-details/update', {
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/shop-details/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)

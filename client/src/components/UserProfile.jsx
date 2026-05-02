@@ -28,7 +28,7 @@ const UserProfile = ({ user, logoUrl, onClose, onUpdate }) => {
       }
 
       try {
-        const res = await fetch(`http://localhost:5000/api/users/${user.user_id}`);
+        const res = await fetch(import.meta.env.VITE_API_URL + `/api/users/${user.user_id}`);
         if (!res.ok) {
           console.error('Failed to fetch user profile', res.status);
           setLoadingProfile(false);
@@ -68,7 +68,7 @@ const UserProfile = ({ user, logoUrl, onClose, onUpdate }) => {
       setEmailChanged(true);
       // Trigger OTP to new email
       try {
-        const res = await fetch('http://localhost:5000/api/users/profile', {
+        const res = await fetch(import.meta.env.VITE_API_URL + '/api/users/profile', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -101,7 +101,7 @@ const UserProfile = ({ user, logoUrl, onClose, onUpdate }) => {
 
   const updateProfile = async (verifiedOtp = null) => {
     try {
-      const res = await fetch('http://localhost:5000/api/users/profile', {
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/users/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -154,7 +154,7 @@ const UserProfile = ({ user, logoUrl, onClose, onUpdate }) => {
 
   const verifyOtp = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/users/profile', {
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/users/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -416,7 +416,7 @@ const SellingRequestForm = ({ user, onSuccess }) => {
 
   const fetchOurPrice = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/admin/global-price');
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/admin/global-price');
       const data = await res.json();
       setFormData(prev => ({ ...prev, our_price: data.current_price || 0 }));
     } catch (error) {
@@ -439,7 +439,7 @@ const SellingRequestForm = ({ user, onSuccess }) => {
     setLoading(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/users/selling-requests', {
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/users/selling-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -582,7 +582,7 @@ const ChangePasswordForm = ({ user, onSuccess }) => {
     setMessage('');
 
     try {
-      const res = await fetch(`http://localhost:5000/api/users/${user.user_id}/change-password`, {
+      const res = await fetch(import.meta.env.VITE_API_URL + `/api/users/${user.user_id}/change-password`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -610,7 +610,7 @@ const ChangePasswordForm = ({ user, onSuccess }) => {
     setLoading(true);
     setMessage('');
     try {
-      const res = await fetch('http://localhost:5000/api/forgot-password/send-otp', {
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/forgot-password/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: user.emali })
@@ -640,7 +640,7 @@ const ChangePasswordForm = ({ user, onSuccess }) => {
     setLoading(true);
     setMessage('');
     try {
-      const res = await fetch('http://localhost:5000/api/forgot-password/reset', {
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/forgot-password/reset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -772,7 +772,7 @@ const UserOrdersList = ({ user, logoUrl }) => {
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/users/${user.user_id}/orders`);
+      const res = await fetch(import.meta.env.VITE_API_URL + `/api/users/${user.user_id}/orders`);
       const data = await res.json();
       if (res.ok) setOrders(data);
     } catch (e) {
@@ -837,7 +837,7 @@ const UserOrdersList = ({ user, logoUrl }) => {
                 <button onClick={async (e) => {
                   e.stopPropagation();
                   try {
-                    const res = await fetch('http://localhost:5000/api/invoice-settings');
+                    const res = await fetch(import.meta.env.VITE_API_URL + '/api/invoice-settings');
                     const settings = res.ok ? await res.json() : null;
 
                     const baseSubTotal = order.items.reduce((acc, i) => acc + (i.price_at_purchase * i.quantity), 0);
@@ -927,7 +927,7 @@ const UserSellingHistory = ({ user }) => {
 
   const fetchHistory = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/users/${user.user_id}/selling-requests`);
+      const res = await fetch(import.meta.env.VITE_API_URL + `/api/users/${user.user_id}/selling-requests`);
       const data = await res.json();
       if (res.ok) setRequests(data);
     } catch (e) {
@@ -1033,7 +1033,7 @@ const UserSellingHistory = ({ user }) => {
                 <button onClick={async (e) => {
                   e.stopPropagation();
                   try {
-                    const res = await fetch('http://localhost:5000/api/invoice-settings');
+                    const res = await fetch(import.meta.env.VITE_API_URL + '/api/invoice-settings');
                     const settings = res.ok ? await res.json() : null;
 
                     const totalAmt = Number(req.stock_per_mound) * Number(req.our_price);
@@ -1120,8 +1120,8 @@ const OilCakePurchaseTab = ({ user }) => {
     setLoading(true);
     try {
       const [prRes, ordRes] = await Promise.all([
-        fetch('http://localhost:5000/api/oil-cake/price'),
-        fetch(`http://localhost:5000/api/oil-cake/requests/user/${user.user_id}`)
+        fetch(import.meta.env.VITE_API_URL + '/api/oil-cake/price'),
+        fetch(import.meta.env.VITE_API_URL + `/api/oil-cake/requests/user/${user.user_id}`)
       ]);
       if (prRes.ok) setPriceInfo(await prRes.json());
       if (ordRes.ok) setPastOrders(await ordRes.json());
@@ -1146,7 +1146,7 @@ const OilCakePurchaseTab = ({ user }) => {
     }
     setSubmitting(true);
     try {
-      const res = await fetch('http://localhost:5000/api/oil-cake/requests', {
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/oil-cake/requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: user.user_id, ...form, quantity_kg: qty })
@@ -1334,7 +1334,7 @@ const OilCakePurchaseTab = ({ user }) => {
                       <button onClick={async (e) => {
                         e.stopPropagation();
                         try {
-                          const res = await fetch('http://localhost:5000/api/invoice-settings');
+                          const res = await fetch(import.meta.env.VITE_API_URL + '/api/invoice-settings');
                           const settings = res.ok ? await res.json() : null;
 
                           const totalAmt = Number(req.total_amount);
