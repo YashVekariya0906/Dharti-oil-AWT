@@ -16,21 +16,20 @@ VALUES ('Dharti ', 'Oil', 'Welcome to Dharti Amrut', 'Discover the purest and na
 
 -- Table for navbar
 CREATE TABLE IF NOT EXISTS navbar (
-  nav_id INT PRIMARY KEY AUTO_INCREMENT,
-  nav_logo_path VARCHAR(255) DEFAULT NULL,
-  I1_path VARCHAR(255) DEFAULT NULL,
-  I2_path VARCHAR(255) DEFAULT NULL,
-  I3_path VARCHAR(255) DEFAULT NULL,
-  I4_path VARCHAR(255) DEFAULT NULL,
-  I5_path VARCHAR(255) DEFAULT NULL,
-  intro_path VARCHAR(255) DEFAULT NULL
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  logo VARCHAR(255) DEFAULT NULL,
+  image1 VARCHAR(255) DEFAULT NULL,
+  image2 VARCHAR(255) DEFAULT NULL,
+  image3 VARCHAR(255) DEFAULT NULL,
+  image4 VARCHAR(255) DEFAULT NULL,
+  image5 VARCHAR(255) DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- Insert initial navbar data
-INSERT INTO navbar (nav_logo_path, I1_path, I2_path, I3_path, I4_path, I5_path, intro_path) 
-VALUES (NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-
-
+INSERT INTO navbar (logo, image1, image2, image3, image4, image5) 
+VALUES (NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- Table for products
 CREATE TABLE IF NOT EXISTS products (
@@ -41,9 +40,9 @@ CREATE TABLE IF NOT EXISTS products (
   description TEXT
 );
 
--- -- Insert initial dummy products
--- INSERT INTO products (name, price, image_url, description) VALUES
--- ('Groundnut Oil 1L', 250.00, NULL, '100% pure cold-pressed groundnut oil.'),
--- ('Mustard Oil 1L', 180.00, NULL, 'Organic mustard oil for cooking.'),
--- ('Sesame Oil 500ml', 300.00, NULL, 'Premium quality sesame oil.'),
--- ('Coconut Oil 500ml', 220.00, NULL, 'Cold-pressed coconut oil for hair and body.');
+-- Insert initial dummy products
+INSERT INTO products (name, price, image_url, description) VALUES
+('Groundnut Oil 1L', 250.00, NULL, '100% pure cold-pressed groundnut oil.'),
+('Mustard Oil 1L', 180.00, NULL, 'Organic mustard oil for cooking.'),
+('Sesame Oil 500ml', 300.00, NULL, 'Premium quality sesame oil.'),
+('Coconut Oil 500ml', 220.00, NULL, 'Cold-pressed coconut oil for hair and body.');
