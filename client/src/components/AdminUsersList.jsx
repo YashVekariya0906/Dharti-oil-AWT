@@ -16,18 +16,13 @@ const AdminUsersList = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:5000/api/admin/users');
-      const text = await res.text();
-      if (!text) {
-        setUsers([]);
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/admin/users');
+      const data = await res.json();
+      if (res.ok) {
+        setUsers(data);
       } else {
-        const data = JSON.parse(text);
-        if (res.ok) {
-          setUsers(data);
-        } else {
-          console.error('API Error:', data.message || data.error);
-          setUsers([]);
-        }
+        console.error('API Error:', data.message || data.error);
+        setUsers([]);
       }
     } catch (error) {
       console.error('Failed to fetch users:', error);
@@ -45,13 +40,12 @@ const AdminUsersList = () => {
     }
     
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/users/${userId}/role`, {
+      const res = await fetch(import.meta.env.VITE_API_URL + `/api/admin/users/${userId}/role`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: newRole })
       });
-      const text = await res.text();
-      const data = text ? JSON.parse(text) : {};
+      const data = await res.json();
       if (res.ok) {
         setMessage(data.message);
         fetchUsers();

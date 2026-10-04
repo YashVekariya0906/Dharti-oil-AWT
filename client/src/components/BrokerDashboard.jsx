@@ -27,7 +27,7 @@ const BrokerDashboard = ({ user, onLogout }) => {
   const fetchAssignedRequests = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:5000/api/brokers/${user.user_id}/selling-requests`);
+      const res = await fetch(import.meta.env.VITE_API_URL + `/api/brokers/${user.user_id}/selling-requests`);
       const data = await res.json();
       setRequests(data);
     } catch (error) {
@@ -44,7 +44,7 @@ const BrokerDashboard = ({ user, onLogout }) => {
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/brokers/selling-requests/${requestId}/schedule`, {
+      const res = await fetch(import.meta.env.VITE_API_URL + `/api/brokers/selling-requests/${requestId}/schedule`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -76,7 +76,7 @@ const BrokerDashboard = ({ user, onLogout }) => {
 
   const handleReached = async (requestId) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/brokers/selling-requests/${requestId}/reached`, {
+      const res = await fetch(import.meta.env.VITE_API_URL + `/api/brokers/selling-requests/${requestId}/reached`, {
         method: 'PUT',
       });
       const data = await res.json();
@@ -110,7 +110,7 @@ const BrokerDashboard = ({ user, onLogout }) => {
         formData.append('payment_proof', reportData.payment_proof);
       }
 
-      const res = await fetch(`http://localhost:5000/api/brokers/selling-requests/${requestId}/report`, {
+      const res = await fetch(import.meta.env.VITE_API_URL + `/api/brokers/selling-requests/${requestId}/report`, {
         method: 'PUT',
         body: formData
       });
@@ -144,7 +144,7 @@ const BrokerDashboard = ({ user, onLogout }) => {
         formData.append('broker_reject_photos', file);
       });
 
-      const res = await fetch(`http://localhost:5000/api/brokers/selling-requests/${requestId}/broker-reject`, {
+      const res = await fetch(import.meta.env.VITE_API_URL + `/api/brokers/selling-requests/${requestId}/broker-reject`, {
         method: 'PUT',
         body: formData
       });

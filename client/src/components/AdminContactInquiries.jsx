@@ -6,7 +6,7 @@ export default function AdminContactInquiries() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/admin/contact-inquiries')
+    fetch(import.meta.env.VITE_API_URL + '/api/admin/contact-inquiries')
       .then(res => {
         if (!res.ok) throw new Error("Failed to fetch inquiries");
         return res.json();

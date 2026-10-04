@@ -18,7 +18,7 @@ export default function AdminInvoiceSettings() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/invoice-settings')
+    fetch(import.meta.env.VITE_API_URL + '/api/invoice-settings')
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (data) {
@@ -36,7 +36,7 @@ export default function AdminInvoiceSettings() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const res = await fetch('http://localhost:5000/api/admin/invoice-settings', {
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/admin/invoice-settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)

@@ -19,7 +19,7 @@ const AdminDeliveryCharge = () => {
   const fetchDeliveryConfig = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:5000/api/delivery-charge');
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/delivery-charge');
       if (res.ok) {
         const data = await res.json();
         setFormData({
@@ -50,7 +50,7 @@ const AdminDeliveryCharge = () => {
     setSaving(true);
     
     try {
-      const res = await fetch('http://localhost:5000/api/admin/delivery-charge', {
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/admin/delivery-charge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)

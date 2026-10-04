@@ -205,9 +205,9 @@ function App() {
     const fetchData = async () => {
       try {
         const [configRes, productsRes, navbarRes] = await Promise.all([
-          fetch('http://localhost:5000/api/config'),
-          fetch('http://localhost:5000/api/products'),
-          fetch('http://localhost:5000/api/navbar')
+          fetch(import.meta.env.VITE_API_URL + '/api/config'),
+          fetch(import.meta.env.VITE_API_URL + '/api/products'),
+          fetch(import.meta.env.VITE_API_URL + '/api/navbar')
         ]);
 
         if (configRes.ok) {

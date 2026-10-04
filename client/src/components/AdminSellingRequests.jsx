@@ -27,14 +27,9 @@ const AdminSellingRequests = () => {
   const fetchSellingRequests = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:5000/api/admin/selling-requests');
-      const text = await res.text();
-      if (!text) {
-        setRequests([]);
-      } else {
-        const data = JSON.parse(text);
-        setRequests(data);
-      }
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/admin/selling-requests');
+      const data = await res.json();
+      setRequests(data);
     } catch (error) {
       console.error('Failed to fetch requests:', error);
     } finally {
@@ -44,14 +39,8 @@ const AdminSellingRequests = () => {
 
   const fetchActiveBrokers = async (pincode) => {
     try {
-      const res = await fetch('http://localhost:5000/api/admin/brokers');
-      const text = await res.text();
-      if (!text) {
-        setBrokersByPincode([]);
-        setOtherActiveBrokers([]);
-        return;
-      }
-      const data = JSON.parse(text);
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/admin/brokers');
+      const data = await res.json();
       const activeBrokers = data.filter(b => b.status === 'Active');
       const matching = activeBrokers.filter(b => b.pincode === pincode);
       const others = activeBrokers.filter(b => b.pincode !== pincode);
@@ -82,13 +71,12 @@ const AdminSellingRequests = () => {
 
     try {
       setMessage('Assigning broker...');
-      const res = await fetch(`http://localhost:5000/api/admin/selling-requests/${selectedRequest.request_id}/accept`, {
+      const res = await fetch(import.meta.env.VITE_API_URL + `/api/admin/selling-requests/${selectedRequest.request_id}/accept`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ broker_id: broker.user_id || broker.broker_id })
       });
-      const text = await res.text();
-      const data = text ? JSON.parse(text) : {};
+      const data = await res.json();
       if (res.ok) {
         setMessage('  Broker assigned successfully!');
         setSelectedBroker(broker);
@@ -121,7 +109,7 @@ const AdminSellingRequests = () => {
     setRejectLoading(true);
     setRejectMsg('');
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/selling-requests/${rejectModalRequestId}/reject`, {
+      const res = await fetch(import.meta.env.VITE_API_URL + `/api/admin/selling-requests/${rejectModalRequestId}/reject`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -129,8 +117,7 @@ const AdminSellingRequests = () => {
           admin_reject_comment: rejectForm.comment.trim()
         })
       });
-      const text = await res.text();
-      const data = text ? JSON.parse(text) : {};
+      const data = await res.json();
       if (res.ok) {
         setRejectMsg('  Request rejected successfully.');
         setTimeout(() => {
@@ -152,11 +139,10 @@ const AdminSellingRequests = () => {
     const ok = await confirmAction('Confirm broker rejection and notify user?');
     if (!ok) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/selling-requests/${requestId}/confirm-broker-rejection`, {
+      const res = await fetch(import.meta.env.VITE_API_URL + `/api/admin/selling-requests/${requestId}/confirm-broker-rejection`, {
         method: 'PUT'
       });
-      const text = await res.text();
-      const data = text ? JSON.parse(text) : {};
+      const data = await res.json();
       if (res.ok) {
         fetchSellingRequests();
       } else {
@@ -174,11 +160,10 @@ const AdminSellingRequests = () => {
     const ok = await confirmAction("Override broker rejection? The request will be reset to 'Pending' so you can assign another broker.");
     if (!ok) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/selling-requests/${req.request_id}/override-broker-rejection`, {
+      const res = await fetch(import.meta.env.VITE_API_URL + `/api/admin/selling-requests/${req.request_id}/override-broker-rejection`, {
         method: 'PUT'
       });
-      const text = await res.text();
-      const data = text ? JSON.parse(text) : {};
+      const data = await res.json();
       if (res.ok) {
         fetchSellingRequests();
       } else {
@@ -429,7 +414,7 @@ const AdminSellingRequests = () => {
                         <button onClick={async (e) => {
                           e.stopPropagation();
                           try {
-                            const res = await fetch('http://localhost:5000/api/invoice-settings');
+                            const res = await fetch(import.meta.env.VITE_API_URL + '/api/invoice-settings');
                             const settings = res.ok ? await res.json() : null;
                             
                             const totalAmt = Number(req.stock_per_mound) * Number(req.our_price);

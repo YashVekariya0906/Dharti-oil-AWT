@@ -22,7 +22,7 @@ const AdminBrokerForm = () => {
 
   const fetchBrokers = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/admin/brokers');
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/admin/brokers');
       const data = await res.json();
       setBrokers(data);
     } catch (error) {
@@ -66,8 +66,8 @@ const AdminBrokerForm = () => {
       }
 
       const url = editingBrokerId
-        ? `http://localhost:5000/api/admin/brokers/${editingBrokerId}`
-        : 'http://localhost:5000/api/admin/brokers';
+        ? import.meta.env.VITE_API_URL + `/api/admin/brokers/${editingBrokerId}`
+        : import.meta.env.VITE_API_URL + '/api/admin/brokers';
       const method = editingBrokerId ? 'PUT' : 'POST';
 
       console.log('📨 Sending broker data:', body, 'method:', method);
@@ -131,7 +131,7 @@ const AdminBrokerForm = () => {
 
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:5000/api/admin/brokers/${brokerId}`, {
+      const res = await fetch(import.meta.env.VITE_API_URL + `/api/admin/brokers/${brokerId}`, {
         method: 'DELETE'
       });
       const data = await res.json();
@@ -163,7 +163,7 @@ const AdminBrokerForm = () => {
 
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:5000/api/admin/brokers/verify-otp', {
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/admin/brokers/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ emali: otpEmail, otp_code: otpCode })

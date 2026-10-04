@@ -29,38 +29,22 @@ const AdminOilCake = () => {
 
   // --- fetch price ---
   useEffect(() => {
-    fetch('http://localhost:5000/api/oil-cake/price')
-      .then(r => r.text())
-      .then(text => {
-        if (!text) {
-          setPriceData({ price_per_kg: '', min_quantity_kg: 20, is_available: true });
-          return;
-        }
-        const d = JSON.parse(text);
-        setPriceData({
-          price_per_kg: d.price_per_kg ?? '',
-          min_quantity_kg: d.min_quantity_kg ?? 20,
-          is_available: d.is_available ?? true
-        });
-      })
+    fetch(import.meta.env.VITE_API_URL + '/api/oil-cake/price')
+      .then(r => r.json())
+      .then(d => setPriceData({
+        price_per_kg: d.price_per_kg ?? '',
+        min_quantity_kg: d.min_quantity_kg ?? 20,
+        is_available: d.is_available ?? true
+      }))
       .catch(() => { });
   }, []);
 
   // --- fetch requests ---
   const fetchRequests = () => {
     setLoadingReqs(true);
-    fetch('http://localhost:5000/api/admin/oil-cake/requests')
-      .then(r => r.text())
-      .then(text => {
-        if (!text) {
-          setRequests([]);
-          setReqError('');
-          return;
-        }
-        const d = JSON.parse(text);
-        setRequests(d);
-        setReqError('');
-      })
+    fetch(import.meta.env.VITE_API_URL + '/api/admin/oil-cake/requests')
+      .then(r => r.json())
+      .then(d => { setRequests(d); setReqError(''); })
       .catch(e => setReqError(e.message))
       .finally(() => setLoadingReqs(false));
   };
@@ -79,7 +63,7 @@ const AdminOilCake = () => {
         return;
       }
 
-      const res = await fetch('http://localhost:5000/api/admin/oil-cake/price', {
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/admin/oil-cake/price', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -108,7 +92,7 @@ const AdminOilCake = () => {
   const handleStatusUpdate = async (id, newStatus) => {
     setUpdatingId(id);
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/oil-cake/requests/${id}/status`, {
+      const res = await fetch(import.meta.env.VITE_API_URL + `/api/admin/oil-cake/requests/${id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus, admin_note: adminNotes[id] || '' })
@@ -340,7 +324,7 @@ const AdminOilCake = () => {
                               <button onClick={async (e) => {
                                 e.stopPropagation();
                                 try {
-                                  const res = await fetch('http://localhost:5000/api/invoice-settings');
+                                  const res = await fetch(import.meta.env.VITE_API_URL + '/api/invoice-settings');
                                   const settings = res.ok ? await res.json() : null;
                                   
                                   const totalAmt = Number(req.total_amount);

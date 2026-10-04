@@ -19,7 +19,7 @@ export default function AddProduct() {
   
   const fetchProducts = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/products');
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/products');
       if (res.ok) {
         const data = await res.json();
         setProducts(data);
@@ -58,7 +58,7 @@ export default function AddProduct() {
         formDataToSend.append('existing_image', existingImage);
       }
 
-      const url = editId ? `http://localhost:5000/api/products/${editId}` : 'http://localhost:5000/api/products';
+      const url = editId ? import.meta.env.VITE_API_URL + `/api/products/${editId}` : import.meta.env.VITE_API_URL + '/api/products';
       const method = editId ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -100,7 +100,7 @@ export default function AddProduct() {
     const isConfirmed = await confirmAction("Are you sure you want to delete this product?");
     if (!isConfirmed) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/products/${id}`, { method: 'DELETE' });
+      const res = await fetch(import.meta.env.VITE_API_URL + `/api/products/${id}`, { method: 'DELETE' });
       if (res.ok) {
         fetchProducts();
         if (editId === id) resetForm();

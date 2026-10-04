@@ -42,7 +42,6 @@ const AboutUs = sequelize.define('AboutUs', {
   faq_data: {
     type: DataTypes.TEXT('long'),
     allowNull: true,
-    defaultValue: '[]',
     get() {
       const raw = this.getDataValue('faq_data');
       try {

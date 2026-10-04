@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './AdminAboutUs.css';
 import { confirmAction } from '../utils/confirmAlert';
 
-const API_BASE = 'http://localhost:5000';
+const API_BASE = import.meta.env.VITE_API_URL + '';
 
 const AdminAboutUs = () => {
   const [activeSection, setActiveSection] = useState('about');

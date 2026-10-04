@@ -12,7 +12,7 @@ const AdminOrdersList = () => {
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/admin/orders');
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/admin/orders');
       if (!res.ok) throw new Error('Failed to fetch orders');
       
       const text = await res.text();
@@ -47,7 +47,7 @@ const AdminOrdersList = () => {
     }
     
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/orders/${orderId}/status`, {
+      const res = await fetch(import.meta.env.VITE_API_URL + `/api/admin/orders/${orderId}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
@@ -166,7 +166,7 @@ const AdminOrdersList = () => {
                             onClick={async (e) => {
                               e.stopPropagation();
                               try {
-                                const res = await fetch('http://localhost:5000/api/invoice-settings');
+                                const res = await fetch(import.meta.env.VITE_API_URL + '/api/invoice-settings');
                                 const settings = res.ok ? await res.json() : null;
                                 
                                 const isTaxIncluded = !order.cgst; // Fallback if old order

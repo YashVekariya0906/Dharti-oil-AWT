@@ -43,7 +43,7 @@ const Register = ({ onBack, onLogin, onSwitchToLogin }) => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/register', {
+      const response = await fetch(import.meta.env.VITE_API_URL + '/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -64,7 +64,7 @@ const Register = ({ onBack, onLogin, onSwitchToLogin }) => {
   const handleOtpSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5000/api/verify-otp', {
+      const response = await fetch(import.meta.env.VITE_API_URL + '/api/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ emali: formData.emali, otp_code: otpCode })

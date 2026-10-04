@@ -13,7 +13,7 @@ export default function UpdateNavbar() {
   const [selectedItems, setSelectedItems] = useState([]);
 
   const fetchData = () => {
-    fetch('http://localhost:5000/api/navbar')
+    fetch(import.meta.env.VITE_API_URL + '/api/navbar')
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if(data) setFormData(data);
@@ -43,7 +43,7 @@ export default function UpdateNavbar() {
         if(file) formDataToSend.set(key, file); 
       });
 
-      const res = await fetch('http://localhost:5000/api/navbar/update', {
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/navbar/update', {
         method: 'POST',
         body: formDataToSend
       });
@@ -71,7 +71,7 @@ export default function UpdateNavbar() {
 
     if(selectedItems.length === 0) return;
     try {
-      const res = await fetch('http://localhost:5000/api/navbar/delete', {
+      const res = await fetch(import.meta.env.VITE_API_URL + '/api/navbar/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fields: selectedItems })

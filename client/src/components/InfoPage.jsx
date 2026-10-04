@@ -6,7 +6,7 @@ export default function InfoPage({ product, onBack, onAddToCart, onBuyNow, onWis
   const [info, setInfo] = useState(null);
   
   useEffect(() => {
-    fetch('http://localhost:5000/api/shop-details')
+    fetch(import.meta.env.VITE_API_URL + '/api/shop-details')
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (data && data.id) setInfo(data);
