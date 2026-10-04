@@ -14,11 +14,21 @@ const AdminOrdersList = () => {
     try {
       const res = await fetch('http://localhost:5000/api/admin/orders');
       if (!res.ok) throw new Error('Failed to fetch orders');
-      const data = await res.json();
+      
+      const text = await res.text();
+      if (!text) {
+        setOrders([]);
+        setError(null);
+        setLoading(false);
+        return;
+      }
+      
+      const data = JSON.parse(text);
       setOrders(data);
       setError(null);
     } catch (err) {
       setError(err.message);
+      setOrders([]);
     } finally {
       setLoading(false);
     }

@@ -30,12 +30,19 @@ const AdminOilCake = () => {
   // --- fetch price ---
   useEffect(() => {
     fetch('http://localhost:5000/api/oil-cake/price')
-      .then(r => r.json())
-      .then(d => setPriceData({
-        price_per_kg: d.price_per_kg ?? '',
-        min_quantity_kg: d.min_quantity_kg ?? 20,
-        is_available: d.is_available ?? true
-      }))
+      .then(r => r.text())
+      .then(text => {
+        if (!text) {
+          setPriceData({ price_per_kg: '', min_quantity_kg: 20, is_available: true });
+          return;
+        }
+        const d = JSON.parse(text);
+        setPriceData({
+          price_per_kg: d.price_per_kg ?? '',
+          min_quantity_kg: d.min_quantity_kg ?? 20,
+          is_available: d.is_available ?? true
+        });
+      })
       .catch(() => { });
   }, []);
 
@@ -43,8 +50,17 @@ const AdminOilCake = () => {
   const fetchRequests = () => {
     setLoadingReqs(true);
     fetch('http://localhost:5000/api/admin/oil-cake/requests')
-      .then(r => r.json())
-      .then(d => { setRequests(d); setReqError(''); })
+      .then(r => r.text())
+      .then(text => {
+        if (!text) {
+          setRequests([]);
+          setReqError('');
+          return;
+        }
+        const d = JSON.parse(text);
+        setRequests(d);
+        setReqError('');
+      })
       .catch(e => setReqError(e.message))
       .finally(() => setLoadingReqs(false));
   };

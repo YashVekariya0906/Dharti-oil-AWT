@@ -28,8 +28,13 @@ const AdminSellingRequests = () => {
     try {
       setLoading(true);
       const res = await fetch('http://localhost:5000/api/admin/selling-requests');
-      const data = await res.json();
-      setRequests(data);
+      const text = await res.text();
+      if (!text) {
+        setRequests([]);
+      } else {
+        const data = JSON.parse(text);
+        setRequests(data);
+      }
     } catch (error) {
       console.error('Failed to fetch requests:', error);
     } finally {
@@ -40,7 +45,13 @@ const AdminSellingRequests = () => {
   const fetchActiveBrokers = async (pincode) => {
     try {
       const res = await fetch('http://localhost:5000/api/admin/brokers');
-      const data = await res.json();
+      const text = await res.text();
+      if (!text) {
+        setBrokersByPincode([]);
+        setOtherActiveBrokers([]);
+        return;
+      }
+      const data = JSON.parse(text);
       const activeBrokers = data.filter(b => b.status === 'Active');
       const matching = activeBrokers.filter(b => b.pincode === pincode);
       const others = activeBrokers.filter(b => b.pincode !== pincode);
@@ -76,7 +87,8 @@ const AdminSellingRequests = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ broker_id: broker.user_id || broker.broker_id })
       });
-      const data = await res.json();
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : {};
       if (res.ok) {
         setMessage('  Broker assigned successfully!');
         setSelectedBroker(broker);
@@ -117,7 +129,8 @@ const AdminSellingRequests = () => {
           admin_reject_comment: rejectForm.comment.trim()
         })
       });
-      const data = await res.json();
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : {};
       if (res.ok) {
         setRejectMsg('  Request rejected successfully.');
         setTimeout(() => {
@@ -142,7 +155,8 @@ const AdminSellingRequests = () => {
       const res = await fetch(`http://localhost:5000/api/admin/selling-requests/${requestId}/confirm-broker-rejection`, {
         method: 'PUT'
       });
-      const data = await res.json();
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : {};
       if (res.ok) {
         fetchSellingRequests();
       } else {
@@ -163,7 +177,8 @@ const AdminSellingRequests = () => {
       const res = await fetch(`http://localhost:5000/api/admin/selling-requests/${req.request_id}/override-broker-rejection`, {
         method: 'PUT'
       });
-      const data = await res.json();
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : {};
       if (res.ok) {
         fetchSellingRequests();
       } else {

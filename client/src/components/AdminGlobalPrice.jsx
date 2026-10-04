@@ -13,7 +13,12 @@ const AdminGlobalPrice = () => {
   const fetchPrice = async () => {
     try {
       const res = await fetch('http://localhost:5000/api/admin/global-price');
-      const data = await res.json();
+      const text = await res.text();
+      if (!text) {
+        setCurrentPrice(0);
+        return;
+      }
+      const data = JSON.parse(text);
       setCurrentPrice(data.current_price || 0);
     } catch (error) {
       console.error('Failed to fetch global price:', error);

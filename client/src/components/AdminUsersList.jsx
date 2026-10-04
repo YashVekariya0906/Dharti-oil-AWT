@@ -17,12 +17,17 @@ const AdminUsersList = () => {
     try {
       setLoading(true);
       const res = await fetch('http://localhost:5000/api/admin/users');
-      const data = await res.json();
-      if (res.ok) {
-        setUsers(data);
-      } else {
-        console.error('API Error:', data.message || data.error);
+      const text = await res.text();
+      if (!text) {
         setUsers([]);
+      } else {
+        const data = JSON.parse(text);
+        if (res.ok) {
+          setUsers(data);
+        } else {
+          console.error('API Error:', data.message || data.error);
+          setUsers([]);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch users:', error);
@@ -45,7 +50,8 @@ const AdminUsersList = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: newRole })
       });
-      const data = await res.json();
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : {};
       if (res.ok) {
         setMessage(data.message);
         fetchUsers();
