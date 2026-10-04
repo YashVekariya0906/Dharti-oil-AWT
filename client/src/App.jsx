@@ -204,10 +204,11 @@ function App() {
     // Fetch configuration and products from backend
     const fetchData = async () => {
       try {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
         const [configRes, productsRes, navbarRes] = await Promise.all([
-          fetch(import.meta.env.VITE_API_URL + '/api/config'),
-          fetch(import.meta.env.VITE_API_URL + '/api/products'),
-          fetch(import.meta.env.VITE_API_URL + '/api/navbar')
+          fetch(apiUrl + '/api/config'),
+          fetch(apiUrl + '/api/products'),
+          fetch(apiUrl + '/api/navbar')
         ]);
 
         if (configRes.ok) {
